@@ -1,0 +1,87 @@
+<?php
+
+/**
+ * Implements hook_help().
+ */
+function structured_data_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#structured-data':
+      return '<p>' . t('This is the Help page for the Structured Data module') . '</p>';
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function structured_data_menu() {
+  $items['admin/config/structured-data/rich-snippets'] = array(
+    'title' => 'Rich Snippets',
+    'page callback' => '',
+    'page arguments' => array(),
+    'access arguments' => array(''),
+//    'type' => ,
+//    'file' => ,
+  );
+
+  $items['admin/config/structured-data/site-name'] = array(
+    'title' => 'Structured data (Rich Snippets) - Site Name in Search Results',
+    'description' => 'Use structured data markup on your public website to indicate the preferred name you want Google to display in Search results. .See <a href="https://developers.google.com/structured-data/site-name">Google Developers page</a> for more info.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('structured_data_admin_site_name_settings'),
+    'file' => 'structured_data.admin.inc',
+    'access arguments' => array('administer site configuration'),
+  );
+
+  return $items;
+}
+
+/**
+ * Implements template_preprocess_html().
+ *
+ * Add the necesarry json-ld
+ */
+function structured_data_preprocess_html(&$vars) {
+
+  //Pass no arguments (or NULL for both) to retrieve the currently stored elements.
+  $head_elements = drupal_add_html_head();
+
+  if(drupal_is_front_page()) {
+    structured_data_add_site_name_script($head_elements);
+  }
+}
+
+function structured_data_add_site_name_script($head_elements)
+{
+  if(!empty($head_elements['metatag_canonical'])) {
+    $canonical_url = $head_elements['metatag_canonical']['#value'];
+  }
+
+  if(variable_get('structured_data_site_name_default', FALSE)) {
+    $site_name = variable_get('site_name','');
+  }
+  else
+  {
+    $site_name = variable_get('structured_data_site_name_custom','');
+  }
+
+  $alternative_site_name = variable_get('structured_data_site_name_alternative', '');
+  if(empty($alternative_site_name)) {
+    $alternative_site_name = $site_name;
+  }
+
+  $site_name = array(
+    '@context' => 'http://schema.org',
+    '@type' => 'WebSite',
+    'name' => $site_name,
+    'alternateName' => $alternative_site_name,
+    'url' => $canonical_url,
+  );
+
+  $site_name_script = array(
+    '#tag' => 'script',
+    '#attributes' => array('type' => 'application/ld+json'),
+    '#value' => json_encode($site_name, JSON_UNESCAPED_SLASHES),
+  );
+
+  drupal_add_html_head($site_name_script, 'structured_data_site_name');
+}
