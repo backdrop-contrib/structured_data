@@ -1,5 +1,7 @@
-name = Structured data (Rich Snippets)
+name = Structured data markup (Rich Snippets)
 description = Structured data markup - is a standard way to annotate your content so machines can understand it. When your web pages include structured data markup, Google (and other search engines) can use that data to index your content better, present it more prominently in search results, and surface it in new experiences that use Semantic data.
 core = 7.x
+
+configure = admin/config/structured-data
 
 dependencies[] = metatag
