@@ -59,7 +59,7 @@ function structured_data_preprocess_html(&$vars) {
     $json_ld_script = array(
       '#tag' => 'script',
       '#attributes' => array('type' => 'application/ld+json'),
-      '#value' => json_encode($structured_data, JSON_UNESCAPED_SLASHES),
+      '#value' => defined('JSON_UNESCAPED_SLASHES') ? json_encode($structured_data, JSON_UNESCAPED_SLASHES) : json_encode($structured_data),
     );
 
     drupal_add_html_head($json_ld_script, 'structured_data_json_ld');
