@@ -66,14 +66,21 @@ function structured_data_preprocess_html(&$vars) {
   }
 }
 
-function structured_data_add_site_name_script()
-{
+function structured_data_add_site_name_script() {
   $data = structured_data_get_setting('site_name');
-  return array(
-    'name' => $data['site_name'],
-    'alternateName' => $data['alternative_site_name'],
-    'url' => $data['canonical_url']
-  );
+  $return =  array();
+
+  if (isset($data['site_name'])) {
+    $return['name'] = $data['site_name'];
+  }
+  if (isset($data['alternative_site_name'])) {
+    $return['alternateName'] = $data['alternative_site_name'];
+  }
+  if (isset($data['canonical_url'])) {
+    $return['url'] = $data['canonical_url'];
+  }
+
+  return $return;
 }
 
 function structured_data_add_site_logo_script()
