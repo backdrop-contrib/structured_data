@@ -5,17 +5,6 @@
  */
 
 /**
- * Implements hook_help().
- */
-function structured_data_help($path, $arg) {
-  switch ($path) {
-    case 'admin/help#structured-data':
-      return '<p>' . t('This is the Help page for the Structured Data module') . '</p>';
-      break;
-  }
-}
-
-/**
  * Implements hook_menu().
  */
 function structured_data_menu() {
