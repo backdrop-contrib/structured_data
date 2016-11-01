@@ -1,0 +1,17 @@
+<?php
+/**
+ * @file
+ * Install, Uninstall, and Update hooks for structured_data module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function structured_data_uninstall() {
+  // Remvove variables.
+  variable_del('structured_data_site_name_default');
+  variable_del('structured_data_site_name_custom');
+  variable_del('structured_data_site_name_alternative');
+  variable_del('structured_data_site_logo_default');
+  variable_del('structured_data_site_logo_custom');
+}
