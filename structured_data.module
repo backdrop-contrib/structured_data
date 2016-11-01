@@ -48,12 +48,12 @@ function structured_data_menu() {
 /**
  * Implements template_preprocess_html().
  *
- * Add the necesarry json-ld
+ * Add the necesarry json-ld to the page header.
  */
 function structured_data_preprocess_html(&$vars) {
   $structured_data = array();
 
-  if(drupal_is_front_page()) {
+  if (drupal_is_front_page()) {
     $structured_data += structured_data_add_site_name_script();
     $structured_data += structured_data_add_site_logo_script();
 
@@ -68,39 +68,35 @@ function structured_data_preprocess_html(&$vars) {
 }
 
 /**
- * Helper function: Gets the site name.
- *
- * @return array
- *   Render array for the site name.
+ * Helper function: Gets the site name data.
  */
 function structured_data_add_site_name_script() {
-  $data = structured_data_get_setting('site_name');
-  $return =  array();
+  $setting = structured_data_get_setting('site_name');
+  $structured_data =  array();
 
   if (isset($data['site_name'])) {
-    $return['name'] = $data['site_name'];
+    $data['name'] = $data['site_name'];
   }
   if (isset($data['alternative_site_name'])) {
-    $return['alternateName'] = $data['alternative_site_name'];
+    $data['alternateName'] = $data['alternative_site_name'];
   }
   if (isset($data['canonical_url'])) {
-    $return['url'] = $data['canonical_url'];
+    $data['url'] = $data['canonical_url'];
   }
 
-  return $return;
+  return $data;
 }
 
 /**
- * Helper function: Gets the site logo.
- *
- * @return array
- *   Render array for the site logo
+ * Helper function: Gets the site logo data.
  */
 function structured_data_add_site_logo_script() {
-  $data = structured_data_get_setting('site_logo');
-  return array(
-    'logo' => $data['site_logo'],
+  $setting = structured_data_get_setting('site_logo');
+  $data = array(
+    'logo' => $setting['site_logo'],
   );
+
+  return $data;
 }
 
 /**
@@ -115,13 +111,14 @@ function structured_data_add_site_logo_script() {
 function structured_data_get_setting($setting_name) {
   switch ($setting_name) {
     case 'site_name':
-      //Pass no arguments (or NULL for both) to retrieve the currently stored elements.
-      $head_elements = drupal_add_html_head();
 
+      // If metatag has set a cononical URL, use it here.
+      $head_elements = drupal_add_html_head();
       if (!empty($head_elements['metatag_canonical'])) {
         $canonical_url = $head_elements['metatag_canonical']['#value'];
       }
 
+      // Get the site name.
       if (variable_get('structured_data_site_name_default', FALSE)) {
         $site_name = variable_get('site_name','');
       }
@@ -129,10 +126,12 @@ function structured_data_get_setting($setting_name) {
         $site_name = variable_get('structured_data_site_name_custom','');
       }
 
+      // Get the alternative site name.
       $alternative_site_name = variable_get('structured_data_site_name_alternative', '');
       if (empty($alternative_site_name)) {
         $alternative_site_name = $site_name;
       }
+
       return array(
         'site_name' => $site_name,
         'alternative_site_name' => $alternative_site_name,
@@ -141,6 +140,7 @@ function structured_data_get_setting($setting_name) {
       break;
 
     case 'site_logo':
+
       if (variable_get('structured_data_site_logo_default', TRUE)) {
         $site_logo = theme_get_setting('logo');
       }
@@ -148,6 +148,7 @@ function structured_data_get_setting($setting_name) {
         $logo = file_load(variable_get('structured_data_site_logo_custom'));
         $site_logo = file_create_url($logo->uri);
       }
+
       return array(
         'site_logo' => $site_logo,
       );
