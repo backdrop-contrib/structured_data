@@ -16,6 +16,7 @@ function structured_data_admin_site_name_settings() {
   $form['structured_data_site_name_custom'] = array(
     '#type' =>'textfield',
     '#title' => t('Custom site name'),
+    '#description' => t('The preferred name of your website.'),
     '#default_value' => variable_get('structured_data_site_name_custom', ''),
     '#states' => array(
       'visible' => array(
@@ -26,6 +27,7 @@ function structured_data_admin_site_name_settings() {
   $form['structured_data_site_name_alternative'] = array(
     '#type' =>'textfield',
     '#title' => t('Alternative site name'),
+    '#description' => t('An alternate name you want Search Engines to consider.'),
     '#default_value' => variable_get('structured_data_site_name_alternative', ''),
   );
 
