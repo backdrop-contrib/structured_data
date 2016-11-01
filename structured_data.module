@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Annotate your content to generate Rich Search Snippets.
+ */
 
 /**
  * Implements hook_help().
@@ -7,6 +11,7 @@ function structured_data_help($path, $arg) {
   switch ($path) {
     case 'admin/help#structured-data':
       return '<p>' . t('This is the Help page for the Structured Data module') . '</p>';
+      break;
   }
 }
 
@@ -18,12 +23,8 @@ function structured_data_menu() {
     'title' => 'Structured data (Rich Snippets) - Main config',
     'description' => 'The main configuration page of all settings supported by this module',
     'page callback' => 'structured_data_main_page',
-    'page arguments' => array(),
-    'access arguments' => array(''),
-//    'type' => ,
-//    'file' => ,
+    'access arguments' => array('administer site configuration'),
   );
-
   $items['admin/config/structured-data/knowledge-graph/site-name'] = array(
     'title' => 'Structured data (Rich Snippets) - Site Name in Search Results',
     'description' => 'Use structured data markup on your public website to indicate the preferred name you want Google to display in Search results. .See <a href="https://developers.google.com/structured-data/site-name">Google Developers page</a> for more info.',
@@ -66,6 +67,12 @@ function structured_data_preprocess_html(&$vars) {
   }
 }
 
+/**
+ * Helper function: Gets the site name.
+ *
+ * @return array
+ *   Render array for the site name.
+ */
 function structured_data_add_site_name_script() {
   $data = structured_data_get_setting('site_name');
   $return =  array();
@@ -83,8 +90,13 @@ function structured_data_add_site_name_script() {
   return $return;
 }
 
-function structured_data_add_site_logo_script()
-{
+/**
+ * Helper function: Gets the site logo.
+ *
+ * @return array
+ *   Render array for the site logo
+ */
+function structured_data_add_site_logo_script() {
   $data = structured_data_get_setting('site_logo');
   return array(
     'logo' => $data['site_logo'],
@@ -92,31 +104,33 @@ function structured_data_add_site_logo_script()
 }
 
 /**
- * Retrieves a setting for the structured data given
- * @param  $setting_name The name of the setting to be retrieved.
- * @return The value of the requested setting, NULL if the setting does not exist.
+ * Helper function: Retrieves a setting for the structured data given.
+ *
+ * @param $setting_name
+ *   The name of the setting to be retrieved.
+ *
+ * @return
+ *   The value of the requested setting, NULL if the setting does not exist.
  */
-function structured_data_get_setting($setting_name)
-{
+function structured_data_get_setting($setting_name) {
   switch ($setting_name) {
     case 'site_name':
       //Pass no arguments (or NULL for both) to retrieve the currently stored elements.
       $head_elements = drupal_add_html_head();
 
-      if(!empty($head_elements['metatag_canonical'])) {
+      if (!empty($head_elements['metatag_canonical'])) {
         $canonical_url = $head_elements['metatag_canonical']['#value'];
       }
 
-      if(variable_get('structured_data_site_name_default', FALSE)) {
+      if (variable_get('structured_data_site_name_default', FALSE)) {
         $site_name = variable_get('site_name','');
       }
-      else
-      {
+      else {
         $site_name = variable_get('structured_data_site_name_custom','');
       }
 
       $alternative_site_name = variable_get('structured_data_site_name_alternative', '');
-      if(empty($alternative_site_name)) {
+      if (empty($alternative_site_name)) {
         $alternative_site_name = $site_name;
       }
       return array(
@@ -125,12 +139,12 @@ function structured_data_get_setting($setting_name)
         'canonical_url' => $canonical_url,
       );
       break;
+
     case 'site_logo':
-      if(variable_get('structured_data_site_logo_default', TRUE)) {
+      if (variable_get('structured_data_site_logo_default', TRUE)) {
         $site_logo = theme_get_setting('logo');
       }
-      else
-      {
+      else {
         $logo = file_load(variable_get('structured_data_site_logo_custom'));
         $site_logo = file_create_url($logo->uri);
       }
@@ -139,14 +153,19 @@ function structured_data_get_setting($setting_name)
       );
       break;
   }
-
 }
 
-function structured_data_main_page()
-{
+/**
+ * Page callback: Lists various admin pages.
+ *
+ * @return
+ *   Rendered output for display on page.
+ */
+function structured_data_main_page() {
   $items['items'] = array(
     l('Structured data (Rich Snippets) - Site Name in Search Results', 'admin/config/structured-data/knowledge-graph/site-name'),
     l('Structured data (Rich Snippets) - Your Logo', 'admin/config/structured-data/knowledge-graph/logos'),
   );
+
   return theme('item_list', $items);
 }
