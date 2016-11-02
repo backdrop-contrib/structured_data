@@ -41,11 +41,11 @@ function structured_data_preprocess_html(&$vars) {
   $structured_data = array();
 
   // Add site name to all pages.
-  $name_data = structured_data_add_site_name_script();
+  $name_data = structured_data_get_site_name_info();
   $structured_data = array_merge($structured_data, $name_data);
 
   // Add site logo to all pages.
-  $logo_data = structured_data_add_site_logo_script();
+  $logo_data = structured_data_get_site_logo_info();
   $structured_data = array_merge($structured_data, $logo_data);
 
   // If there is sructured data, add it to the page.
@@ -63,7 +63,7 @@ function structured_data_preprocess_html(&$vars) {
 /**
  * Helper function: Gets the site name data.
  */
-function structured_data_add_site_name_script() {
+function structured_data_get_site_name_info() {
   $setting = structured_data_get_setting('site_name');
   $data =  array();
   if (isset($setting['site_name'])) {
@@ -82,7 +82,7 @@ function structured_data_add_site_name_script() {
 /**
  * Helper function: Gets the site logo data.
  */
-function structured_data_add_site_logo_script() {
+function structured_data_get_site_logo_info() {
   $setting = structured_data_get_setting('site_logo');
   $data =  array();
   if (isset($setting['site_logo'])) {
