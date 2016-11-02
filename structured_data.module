@@ -70,6 +70,10 @@ function structured_data_preprocess_html(&$vars) {
   $local_data = structured_data_get_local_info();
   $structured_data = array_merge($structured_data, $local_data);
 
+  // Add corporate contact info.
+  $corp_data = structured_data_get_corporate_info();
+  $structured_data = array_merge($structured_data, $corp_data);
+
   // If there is any sructured data, add it to the page.
   if (!empty($structured_data)) {
     $json_ld_script = array(
@@ -124,7 +128,7 @@ function structured_data_get_site_logo_info() {
 }
 
 /**
- * Helper function: Gets the site logo data.
+ * Helper function: Gets the local business data.
  */
 function structured_data_get_local_info() {
   $data = array('address' => array('@type' => 'PostalAddress'));
@@ -143,9 +147,29 @@ function structured_data_get_local_info() {
     $data['address']['postalCode'] = $zip;
   }
 
-  // Phone is separate.
+  return $data;
+}
+
+/**
+ * Helper function: Gets the corporate contact data.
+ */
+function structured_data_get_corporate_info() {
+  $data = array();
+  // Only add a contact point if a phone number is provided.
   if ($phone = variable_get('structured_data_phone', FALSE)) {
-    $data['telephone'] = $phone;
+    $data['contactPoint'] = array(
+      '@type' => 'ContactPoint',
+      'telephone' => $phone,
+    );
+    if ($phone_type = variable_get('structured_data_phone_type', FALSE)) {
+      $data['contactPoint']['contactType'] = $phone_type;
+    }
+    $phone_options = variable_get('structured_data_phone_options', array());
+    // Remove options not selected, get only values.
+    $options = array_values(array_filter($phone_options));
+    if (count($options)) {
+      $data['contactPoint']['contactOption'] = $options;
+    }
   }
 
   return $data;

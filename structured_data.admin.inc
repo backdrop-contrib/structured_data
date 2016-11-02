@@ -12,6 +12,7 @@ function structured_data_settings_form() {
   $form['marketing'] = array(
     '#type' => 'fieldset',
     '#title' => t('Marketing details'),
+    '#collapsible' => TRUE,
   );
   $form['marketing']['structured_data_site_name_custom'] = array(
     '#type' =>'textfield',
@@ -68,11 +69,53 @@ function structured_data_settings_form() {
     ),
   );
 
+  $form['corporate'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Corporate contact details'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  $form['corporate']['structured_data_phone'] = array(
+    '#type' =>'textfield',
+    '#title' => t('Phone number'),
+    '#default_value' => variable_get('structured_data_phone', ''),
+  );
+  $contact_types = array(
+    'customer service' => t('customer service'),
+    'technical support' => t('technical support'),
+    'billing support' => t('billing support'),
+    'bill payment' => t('bill payment'),
+    'sales' => t('sales'),
+    'reservations' => t('reservations'),
+    'credit card support' => t('credit card support'),
+    'emergency' => t('emergency'),
+    'baggage tracking' => t('baggage tracking'),
+    'roadside assistance' => t('roadside assistance'),
+    'package tracking' => t('package tracking'),
+  );
+  $form['corporate']['structured_data_phone_type'] = array(
+    '#type' => 'select',
+    '#title' => t('Contact type'),
+    '#options' => $contact_types,
+    '#empty_option' => t('- None - '),
+    '#default_value' => variable_get('structured_data_phone_type', ''),
+  );
+  $form['corporate']['structured_data_phone_options'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('About this line'),
+    '#options' => array(
+      'TollFree' => t('Toll free'),
+      'HearingImpairedSupported' => t('Serves the hearing-impaired'),
+    ),
+    '#default_value' => variable_get('structured_data_phone_options', ''),
+  );
+  // @todo Add area served, list all/common country codes?
+
   $form['local'] = array(
     '#type' => 'fieldset',
     '#title' => t('Local business details'),
-    '#collapsible' => FALSE,
-    '#collapsed' => FALSE,
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
   );
   $form['local']['structured_data_business_type'] = array(
     '#type' => 'select',
@@ -115,11 +158,6 @@ function structured_data_settings_form() {
     '#title' => t('Zip'),
     '#default_value' => variable_get('structured_data_zip', ''),
   );
-  $form['local']['structured_data_phone'] = array(
-    '#type' =>'textfield',
-    '#title' => t('Phone'),
-    '#default_value' => variable_get('structured_data_phone', ''),
-  );
 
   $form = system_settings_form($form);
 
@@ -130,8 +168,8 @@ function structured_data_settings_form() {
  * Submit handler for structured_data_settings_form().
  */
 function structured_data_settings_form_submit($form, &$form_state) {
+  // Create a file usage record for the logo file uploaded.
   global $user;
-  unset($form['structured_data_site_logo_current']);
   $form['structured_data_site_logo_custom']['#file']->status = FILE_STATUS_PERMANENT;
   $file = file_save($form['structured_data_site_logo_custom']['#file']);
   file_usage_add($file, 'structured_data', 'site_logo', $user->uid);
