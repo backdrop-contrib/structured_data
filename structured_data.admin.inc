@@ -5,15 +5,19 @@
  */
 
 /**
- * Admin settings form.
+ * Form callback for admin settings page.
  */
-function structured_data_admin_site_name_settings() {
-  $form['structured_data_site_name_default'] = array(
+function structured_data_settings_form() {
+  $form['site_name'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Site name settings'),
+  );
+  $form['site_name']['structured_data_site_name_default'] = array(
     '#type' =>'checkbox',
     '#title' => t('Use the default site name'),
     '#default_value' => variable_get('structured_data_site_name_default', TRUE),
   );
-  $form['structured_data_site_name_custom'] = array(
+  $form['site_name']['structured_data_site_name_custom'] = array(
     '#type' =>'textfield',
     '#title' => t('Custom site name'),
     '#description' => t('The preferred name of your website.'),
@@ -24,37 +28,33 @@ function structured_data_admin_site_name_settings() {
       ),
     ),
   );
-  $form['structured_data_site_name_alternative'] = array(
+  $form['site_name']['structured_data_site_name_alternative'] = array(
     '#type' =>'textfield',
     '#title' => t('Alternative site name'),
     '#description' => t('An alternate name you want Search Engines to consider.'),
     '#default_value' => variable_get('structured_data_site_name_alternative', ''),
   );
 
-  return system_settings_form($form);
-}
-
-/**
- * Admin settings form.
- */
-function structured_data_admin_logo_settings() {
   $data = structured_data_get_setting('site_logo');
   $current_logo = array(
     'path' => $data['site_logo'],
     'attributes' => array()
   );
-
-  $form['structured_data_site_logo_current'] = array(
+  $form['site_logo'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Site logo settings'),
+  );
+  $form['site_logo']['structured_data_site_logo_current'] = array(
     '#type' =>'item',
     '#title' => t('The current site logo'),
     '#markup' => theme_image($current_logo),
   );
-  $form['structured_data_site_logo_default'] = array(
+  $form['site_logo']['structured_data_site_logo_default'] = array(
     '#type' =>'checkbox',
     '#title' => t('Use the default site logo'),
     '#default_value' => variable_get('structured_data_site_logo_default', TRUE),
   );
-  $form['structured_data_site_logo_custom'] = array(
+  $form['site_logo']['structured_data_site_logo_custom'] = array(
     '#type' => 'managed_file',
     '#title' => t('Custom site logo'),
     '#description' => t('Upload a file, allowed extensions: jpg, jpeg, png, gif'),
@@ -68,15 +68,14 @@ function structured_data_admin_logo_settings() {
   );
 
   $form = system_settings_form($form);
-  $form['#submit'][] = 'structured_data_admin_site_logo_settings_form_submit';
 
   return $form;
 }
 
 /**
- * Submit handler for structured_data_admin_site_logo_settings_form().
+ * Submit handler for structured_data_settings_form().
  */
-function structured_data_admin_site_logo_settings_form_submit($form, &$form_state) {
+function structured_data_settings_form_submit($form, &$form_state) {
   global $user;
   $form['structured_data_site_logo_custom']['#file']->status = FILE_STATUS_PERMANENT;
   $file = file_save($form['structured_data_site_logo_custom']['#file']);
