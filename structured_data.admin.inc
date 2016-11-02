@@ -35,11 +35,7 @@ function structured_data_settings_form() {
     '#default_value' => variable_get('structured_data_site_name_alternative', ''),
   );
 
-  $data = structured_data_get_setting('site_logo');
-  $current_logo = array(
-    'path' => $data['site_logo'],
-    'attributes' => array()
-  );
+  $logo_data = structured_data_get_site_logo_info();
   $form['site_logo'] = array(
     '#type' => 'fieldset',
     '#title' => t('Site logo settings'),
@@ -47,7 +43,7 @@ function structured_data_settings_form() {
   $form['site_logo']['structured_data_site_logo_current'] = array(
     '#type' =>'item',
     '#title' => t('The current site logo'),
-    '#markup' => theme_image($current_logo),
+    '#markup' => theme('image', array('path' => $logo_data['logo'])),
   );
   $form['site_logo']['structured_data_site_logo_default'] = array(
     '#type' =>'checkbox',
