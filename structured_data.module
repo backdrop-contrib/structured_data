@@ -43,8 +43,10 @@ function structured_data_preprocess_html(&$vars) {
   $structured_data = array();
 
   if (drupal_is_front_page()) {
-    $structured_data += structured_data_add_site_name_script();
-    $structured_data += structured_data_add_site_logo_script();
+    $name_data = structured_data_add_site_name_script();
+    $structured_data = array_merge($structured_data, $name_data);
+    $logo_data = structured_data_add_site_logo_script();
+    $structured_data = array_merge($structured_data, $logo_data);
 
     $json_ld_script = array(
       '#tag' => 'script',
@@ -61,16 +63,15 @@ function structured_data_preprocess_html(&$vars) {
  */
 function structured_data_add_site_name_script() {
   $setting = structured_data_get_setting('site_name');
-  $structured_data =  array();
-
-  if (isset($data['site_name'])) {
-    $data['name'] = $data['site_name'];
+  $data =  array();
+  if (isset($setting['site_name'])) {
+    $data['name'] = $setting['site_name'];
   }
-  if (isset($data['alternative_site_name'])) {
-    $data['alternateName'] = $data['alternative_site_name'];
+  if (isset($setting['alternative_site_name'])) {
+    $data['alternateName'] = $setting['alternative_site_name'];
   }
   if (isset($data['canonical_url'])) {
-    $data['url'] = $data['canonical_url'];
+    $data['url'] = $setting['canonical_url'];
   }
 
   return $data;
@@ -81,9 +82,10 @@ function structured_data_add_site_name_script() {
  */
 function structured_data_add_site_logo_script() {
   $setting = structured_data_get_setting('site_logo');
-  $data = array(
-    'logo' => $setting['site_logo'],
-  );
+  $data =  array();
+  if (isset($setting['site_logo'])) {
+    $data['logo'] = $setting['site_logo'];
+  }
 
   return $data;
 }
