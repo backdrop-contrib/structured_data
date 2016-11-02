@@ -8,58 +8,63 @@
  * Form callback for admin settings page.
  */
 function structured_data_settings_form() {
-  $form['site_name'] = array(
+  $site_name = variable_get('site_name', '');
+  $form['marketing'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Site name settings'),
+    '#title' => t('Marketing details'),
   );
-  $form['site_name']['structured_data_site_name_default'] = array(
-    '#type' =>'checkbox',
-    '#title' => t('Use the default site name'),
-    '#default_value' => variable_get('structured_data_site_name_default', TRUE),
-  );
-  $form['site_name']['structured_data_site_name_custom'] = array(
+  $form['marketing']['structured_data_site_name_custom'] = array(
     '#type' =>'textfield',
-    '#title' => t('Custom site name'),
-    '#description' => t('The preferred name of your website.'),
+    '#title' => t('Official site name'),
+    '#description' => t('Site name or Company name, must be reasonably similar to your domain name. If left blank, %name will be used.', array('%name' => $site_name)),
     '#default_value' => variable_get('structured_data_site_name_custom', ''),
-    '#states' => array(
-      'visible' => array(
-        ':input[name="structured_data_site_name_default"]' => array('checked' => FALSE),
-      ),
-    ),
+    '#attributes' => array('placeholder' => check_plain($site_name)),
   );
-  $form['site_name']['structured_data_site_name_alternative'] = array(
+  $form['marketing']['structured_data_site_name_alternative'] = array(
     '#type' =>'textfield',
-    '#title' => t('Alternative site name'),
+    '#title' => t('Alternative site name (optional)'),
     '#description' => t('An alternate name you want Search Engines to consider.'),
     '#default_value' => variable_get('structured_data_site_name_alternative', ''),
   );
 
   $logo_data = structured_data_get_site_logo_info();
-  $form['site_logo'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Site logo settings'),
-  );
-  $form['site_logo']['structured_data_site_logo_current'] = array(
+  $logo_info = getimagesize($logo_data['path']);
+  $data['width'] = $logo_info[0];
+  $data['height'] = $logo_info[1];
+
+  if ($logo_info['width'] > 600 || $logo_info['height'] > 60) {
+    $problem_width = 'a width greater than 600px';
+    $problem_height = 'a height greater than 60px';
+    $problem_both = $problem_width . ' or ' . $problem_height;
+
+    if ($logo_info['width'] > 600 && $logo_info['height'] > 60) {
+      $problem = $problem_both;
+    }
+    else {
+      if ($logo_info['width'] > 600) {
+        $problem = $problem_width;
+      }
+      elseif ($logo_info['height'] > 60) {
+        $problem = $problem_height;
+      }
+    }
+    drupal_set_message(t('Logos with !problem will be rejected by Google.', array('!problem' => $problem)), 'warning');
+  }
+  $form['marketing']['structured_data_site_logo_current'] = array(
     '#type' =>'item',
-    '#title' => t('The current site logo'),
-    '#markup' => theme('image', array('path' => $logo_data['logo'])),
+    '#title' => t('Image that will be presented to search engines as your logo:'),
+    '#markup' => theme('image', array('path' => $logo_data['path'])),
   );
-  $form['site_logo']['structured_data_site_logo_default'] = array(
-    '#type' =>'checkbox',
-    '#title' => t('Use the default site logo'),
-    '#default_value' => variable_get('structured_data_site_logo_default', TRUE),
-  );
-  $form['site_logo']['structured_data_site_logo_custom'] = array(
+  $form['marketing']['structured_data_site_logo_custom'] = array(
     '#type' => 'managed_file',
     '#title' => t('Custom site logo'),
-    '#description' => t('Upload a file, allowed extensions: jpg, jpeg, png, gif'),
+    '#description' => t('Logos should be exactly 60px tall with width <= 600px. Allowed extensions: jpg, jpeg, png, gif.'),
     '#upload_location' => 'public://structured_data/',
     '#default_value' => variable_get('structured_data_site_logo_custom', ''),
-    '#states' => array(
-      'visible' => array(
-        ':input[name="structured_data_site_logo_default"]' => array('checked' => FALSE),
-      ),
+    '#upload_location' => 'public://',
+    '#upload_validators' => array(
+      'file_validate_extensions' => array('gif png jpg jpeg'),
+      'file_validate_image_resolution' => array('600x60'),
     ),
   );
 
@@ -73,6 +78,7 @@ function structured_data_settings_form() {
  */
 function structured_data_settings_form_submit($form, &$form_state) {
   global $user;
+  unset($form['structured_data_site_logo_current']);
   $form['structured_data_site_logo_custom']['#file']->status = FILE_STATUS_PERMANENT;
   $file = file_save($form['structured_data_site_logo_custom']['#file']);
   file_usage_add($file, 'structured_data', 'site_logo', $user->uid);

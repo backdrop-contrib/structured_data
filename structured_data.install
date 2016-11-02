@@ -15,3 +15,12 @@ function structured_data_uninstall() {
   variable_del('structured_data_site_logo_default');
   variable_del('structured_data_site_logo_custom');
 }
+
+
+/**
+ * Remove settings to use default site name and logo, we now fall back to those.
+ */
+function structured_data_update_7001() {
+  variable_del('structured_data_site_name_default');
+  variable_del('structured_data_site_logo_default');
+}

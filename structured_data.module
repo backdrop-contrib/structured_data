@@ -38,7 +38,21 @@ function structured_data_menu() {
  * Add the necesarry json-ld to the page header.
  */
 function structured_data_preprocess_html(&$vars) {
-  $structured_data = array();
+  // Without more information, we assume every website is just a website.
+  $structured_data = array(
+    '@context' => 'http://schema.org',
+    '@type' => 'WebSite',
+  );
+
+  // If metatag has set a cononical URL, add that here too.
+  $head_elements = drupal_add_html_head();
+  if (!empty($head_elements['metatag_canonical'])) {
+    $structured_data['url'] = $head_elements['metatag_canonical']['#value'];
+  }
+  else {
+    // URL is required, so we fall back to using the site home page.
+    $structured_data['url'] = url('', array('absolute' => TRUE));
+  }
 
   // Add site name info.
   $name_data = structured_data_get_site_name_info();
@@ -47,12 +61,6 @@ function structured_data_preprocess_html(&$vars) {
   // Add site logo info.
   $logo_data = structured_data_get_site_logo_info();
   $structured_data = array_merge($structured_data, $logo_data);
-
-  // If metatag has set a cononical URL, add that here too.
-  $head_elements = drupal_add_html_head();
-  if (!empty($head_elements['metatag_canonical'])) {
-    $structured_data['url'] = $head_elements['metatag_canonical']['#value'];
-  }
 
   // If there is any sructured data, add it to the page.
   if (!empty($structured_data)) {
@@ -93,13 +101,15 @@ function structured_data_get_site_name_info() {
 function structured_data_get_site_logo_info() {
   $data =  array();
 
-  if (variable_get('structured_data_site_logo_default', TRUE)) {
-    $data['logo'] = theme_get_setting('logo');
-  }
-  elseif ($custom_logo = variable_get('structured_data_site_logo_custom', FALSE)) {
+  if ($custom_logo = variable_get('structured_data_site_logo_custom', FALSE)) {
     if ($logo = file_load($custom_logo)) {
-      $data['logo'] = file_create_url($logo->uri);
+      $data['path'] = file_create_url($logo->uri);
     }
+  }
+  else {
+    $default_theme = variable_get('theme_default', 'bartik');
+    $logo_path = theme_get_setting('logo', $default_theme);
+    $data['path'] = $logo_path;
   }
 
   return $data;
