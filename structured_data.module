@@ -43,6 +43,10 @@ function structured_data_preprocess_html(&$vars) {
     '@context' => 'http://schema.org',
     '@type' => 'WebSite',
   );
+  // Override if a business type was selected.
+  if ($schema_type = variable_get('structured_data_business_type', FALSE)) {
+    $data['@type'] = $schema_type;
+  }
 
   // If metatag has set a cononical URL, add that here too.
   $head_elements = drupal_add_html_head();
@@ -61,6 +65,10 @@ function structured_data_preprocess_html(&$vars) {
   // Add site logo info.
   $logo_data = structured_data_get_site_logo_info();
   $structured_data = array_merge($structured_data, $logo_data);
+
+  // Add local business info.
+  $local_data = structured_data_get_local_info();
+  $structured_data = array_merge($structured_data, $local_data);
 
   // If there is any sructured data, add it to the page.
   if (!empty($structured_data)) {
@@ -110,6 +118,34 @@ function structured_data_get_site_logo_info() {
     $default_theme = variable_get('theme_default', 'bartik');
     $logo_path = theme_get_setting('logo', $default_theme);
     $data['path'] = $logo_path;
+  }
+
+  return $data;
+}
+
+/**
+ * Helper function: Gets the site logo data.
+ */
+function structured_data_get_local_info() {
+  $data = array('address' => array('@type' => 'PostalAddress'));
+
+  // Address parts are grouped together.
+  if ($address = variable_get('structured_data_address', FALSE)) {
+    $data['address']['streetAddress'] = $address;
+  }
+  if ($city = variable_get('structured_data_city', FALSE)) {
+    $data['address']['addressLocality'] = $city;
+  }
+  if ($state = variable_get('structured_data_state', FALSE)) {
+    $data['address']['addressRegion'] = $state;
+  }
+  if ($zip = variable_get('structured_data_zip', FALSE)) {
+    $data['address']['postalCode'] = $zip;
+  }
+
+  // Phone is separate.
+  if ($phone = variable_get('structured_data_phone', FALSE)) {
+    $data['telephone'] = $phone;
   }
 
   return $data;

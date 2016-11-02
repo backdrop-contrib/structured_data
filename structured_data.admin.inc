@@ -68,6 +68,59 @@ function structured_data_settings_form() {
     ),
   );
 
+  $form['local'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Local business details'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+  );
+  $form['local']['structured_data_business_type'] = array(
+    '#type' => 'select',
+    '#title' => t('Type of business'),
+    '#options' => array(
+      'Organization' => 'Organization',
+      'Airline' => 'Airline',
+      'Corporation' => 'Corporation',
+      'GeneralContractor' => 'General Contractor',
+      'EducationalOrganization' => 'Educational Organization',
+      'GovernmentOrganization' => 'Government Organization',
+      'LocalBusiness' => 'Local Business',
+      'MedicalOrganization' => 'Medical Organization',
+      'NGO' => 'NGO',
+      'PerformingGroup' => 'Performing Group',
+      'SportsOrganization' => 'Sports Organization',
+    ),
+    '#empty_option' => t('- None - '),
+    '#default_value' => variable_get('structured_data_business_type', ''),
+  );
+  // Address fields.
+  $form['local']['structured_data_address'] = array(
+    '#type' =>'textfield',
+    '#title' => t('Address'),
+    '#size' => 120,
+    '#default_value' => variable_get('structured_data_address', ''),
+  );
+  $form['local']['structured_data_city'] = array(
+    '#type' =>'textfield',
+    '#title' => t('City'),
+    '#default_value' => variable_get('structured_data_city', ''),
+  );
+  $form['local']['structured_data_state'] = array(
+    '#type' =>'textfield',
+    '#title' => t('State'),
+    '#default_value' => variable_get('structured_data_state', ''),
+  );
+  $form['local']['structured_data_zip'] = array(
+    '#type' =>'textfield',
+    '#title' => t('Zip'),
+    '#default_value' => variable_get('structured_data_zip', ''),
+  );
+  $form['local']['structured_data_phone'] = array(
+    '#type' =>'textfield',
+    '#title' => t('Phone'),
+    '#default_value' => variable_get('structured_data_phone', ''),
+  );
+
   $form = system_settings_form($form);
 
   return $form;

@@ -8,12 +8,19 @@
  * Implements hook_uninstall().
  */
 function structured_data_uninstall() {
-  // Remvove variables.
+  // Marketing variables.
   variable_del('structured_data_site_name_default');
   variable_del('structured_data_site_name_custom');
   variable_del('structured_data_site_name_alternative');
   variable_del('structured_data_site_logo_default');
   variable_del('structured_data_site_logo_custom');
+  // Corporate contact variables.
+  variable_del('structured_data_business_type');
+  variable_del('structured_data_address');
+  variable_del('structured_data_city');
+  variable_del('structured_data_state');
+  variable_del('structured_data_zip');
+  variable_del('structured_data_phone');
 }
 
 
