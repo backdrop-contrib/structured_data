@@ -5,30 +5,28 @@
  */
 
 /**
+ * Implements hook_permission().
+ */
+function structured_data_permission() {
+  return array(
+    'configure structured data' =>  array(
+      'title' => t('Configure structured data'),
+      'description' => t('Determine which elements should be included in Rich Snippits.'),
+    ),
+  );
+}
+
+/**
  * Implements hook_menu().
  */
 function structured_data_menu() {
   $items['admin/config/structured-data'] = array(
-    'title' => 'Structured data (Rich Snippets) - Main config',
-    'description' => 'The main configuration page of all settings supported by this module',
-    'page callback' => 'structured_data_main_page',
-    'access arguments' => array('administer site configuration'),
-  );
-  $items['admin/config/structured-data/knowledge-graph/site-name'] = array(
-    'title' => 'Structured data (Rich Snippets) - Site Name in Search Results',
-    'description' => 'Use structured data markup on your public website to indicate the preferred name you want Google to display in Search results. .See <a href="https://developers.google.com/structured-data/site-name">Google Developers page</a> for more info.',
+    'title' => 'Structured data',
+    'description' => 'The main configuration page for Structured Data',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('structured_data_admin_site_name_settings'),
+    'page arguments' => array('structured_data_settings_form'),
+    'access arguments' => array('configure structured data'),
     'file' => 'structured_data.admin.inc',
-    'access arguments' => array('administer site configuration'),
-  );
-  $items['admin/config/structured-data/knowledge-graph/logos'] = array(
-    'title' => 'Structured data (Rich Snippets) - Your Logo',
-    'description' => 'You can specify which image Google should use as your organization\'s logo in search results and the Knowledge Graph. .See <a href="https://developers.google.com/structured-data/customize/logos">Google Developers page</a> for more info.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('structured_data_admin_logo_settings'),
-    'file' => 'structured_data.admin.inc',
-    'access arguments' => array('administer site configuration'),
   );
 
   return $items;
@@ -143,19 +141,4 @@ function structured_data_get_setting($setting_name) {
       );
       break;
   }
-}
-
-/**
- * Page callback: Lists various admin pages.
- *
- * @return
- *   Rendered output for display on page.
- */
-function structured_data_main_page() {
-  $items['items'] = array(
-    l('Structured data (Rich Snippets) - Site Name in Search Results', 'admin/config/structured-data/knowledge-graph/site-name'),
-    l('Structured data (Rich Snippets) - Your Logo', 'admin/config/structured-data/knowledge-graph/logos'),
-  );
-
-  return theme('item_list', $items);
 }
