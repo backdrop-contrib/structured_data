@@ -159,6 +159,40 @@ function structured_data_settings_form() {
     '#default_value' => variable_get('structured_data_zip', ''),
   );
 
+  // Node Type filter.
+  $form['nodes'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Content types'),
+    '#description' => t('Enable Rich Snippets for the following content types.'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+  );
+
+  $type_rows = array();
+  $type_defaults = array();
+  foreach (node_type_get_types() as $type) {
+    $type_defaults[$type->type] = $type->type;
+    $type_rows[$type->type] = array(
+      'type' => t($type->name),
+      'content' => structured_data_get_node_type_config($type->type),
+      'link' => l(t('Configure'), 'admin/structure/types/manage/' . $type->type . '/configure'),
+    );
+  }
+
+  // Set the table select.
+  $form['nodes']['structured_data_node_types'] = array(
+    '#title' => t('Node Types'),
+    '#type' => 'tableselect',
+    '#header' => array(
+      'type' => t('Content Type'),
+      'content' => t('Current rich snippet settings'),
+      'link' => t('Configure'),
+    ),
+    '#options' => $type_rows,
+    '#default_value' => variable_get('structured_data_node_types', $type_defaults),
+    '#empty' => t('No Content Types.'),
+  );
+
   $form = system_settings_form($form);
 
   return $form;
@@ -173,4 +207,22 @@ function structured_data_settings_form_submit($form, &$form_state) {
   $form['structured_data_site_logo_custom']['#file']->status = FILE_STATUS_PERMANENT;
   $file = file_save($form['structured_data_site_logo_custom']['#file']);
   file_usage_add($file, 'structured_data', 'site_logo', $user->uid);
+}
+
+/**
+ * Helper function: Gets info about how the node type is configured for the
+ *   administration page. Should include schema.org type and fields.
+ *
+ * @param $type
+ *   Node type for configuration retrieved.
+ */
+function structured_data_get_node_type_config($type) {
+  if ($schema = variable_get('structured_data_schema_' . $type, FALSE)) {
+    $output = t('Schema.org type: %schema.', array('%schema' => $schema));
+  }
+  else {
+    $output = 'Not configured.';
+  }
+
+  return $output;
 }

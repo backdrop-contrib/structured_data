@@ -38,41 +38,56 @@ function structured_data_menu() {
  * Add the necesarry json-ld to the page header.
  */
 function structured_data_preprocess_html(&$vars) {
-  // Without more information, we assume every website is just a website.
+  // Can we assume every website is just a website?
   $structured_data = array(
     '@context' => 'http://schema.org',
     '@type' => 'WebSite',
   );
-  // Override if a business type was selected.
-  if ($schema_type = variable_get('structured_data_business_type', FALSE)) {
-    $data['@type'] = $schema_type;
-  }
 
-  // If metatag has set a cononical URL, add that here too.
-  $head_elements = drupal_add_html_head();
-  if (!empty($head_elements['metatag_canonical'])) {
-    $structured_data['url'] = $head_elements['metatag_canonical']['#value'];
+  // Check for Current Node.
+  $node = menu_get_object();
+  if (!isset($node) && arg(0) == 'node' && is_numeric(arg(1)) && !arg(2)) {
+    $node = node_load(arg(1));
+  }
+  if (isset($node)) {
+    // Add node specific info.
+    $node_data = structured_data_get_node_info($node);
+    $structured_data = array_merge($structured_data, $node_data);
   }
   else {
-    // URL is required, so we fall back to using the site home page.
-    $structured_data['url'] = url('', array('absolute' => TRUE));
+    // Override type if a business type was selected.
+    if ($schema_type = variable_get('structured_data_business_type', FALSE)) {
+      $data['@type'] = $schema_type;
+    }
+
+    // If metatag has set a cononical URL, add that here too.
+    $head_elements = drupal_add_html_head();
+    if (!empty($head_elements['metatag_canonical'])) {
+      $structured_data['url'] = $head_elements['metatag_canonical']['#value'];
+    }
+    else {
+      // URL is required, so we fall back to using the site home page.
+      $structured_data['url'] = url('', array('absolute' => TRUE));
+    }
+
+    // Add site name info.
+    $name_data = structured_data_get_site_name_info();
+    $structured_data = array_merge($structured_data, $name_data);
+
+    // Add site logo info.
+    $logo_data = structured_data_get_site_logo_info();
+    $structured_data = array_merge($structured_data, $logo_data);
+
+    // Add local business info.
+    $local_data = structured_data_get_local_info();
+    $structured_data = array_merge($structured_data, $local_data);
+
+    // Add corporate contact info.
+    $corp_data = structured_data_get_corporate_info();
+    $structured_data = array_merge($structured_data, $corp_data);
   }
 
-  // Add site name info.
-  $name_data = structured_data_get_site_name_info();
-  $structured_data = array_merge($structured_data, $name_data);
-
-  // Add site logo info.
-  $logo_data = structured_data_get_site_logo_info();
-  $structured_data = array_merge($structured_data, $logo_data);
-
-  // Add local business info.
-  $local_data = structured_data_get_local_info();
-  $structured_data = array_merge($structured_data, $local_data);
-
-  // Add corporate contact info.
-  $corp_data = structured_data_get_corporate_info();
-  $structured_data = array_merge($structured_data, $corp_data);
+  dpm($structured_data);
 
   // If there is any sructured data, add it to the page.
   if (!empty($structured_data)) {
@@ -84,6 +99,127 @@ function structured_data_preprocess_html(&$vars) {
     drupal_add_html_head($json_ld_script, 'structured_data_json_ld');
   }
 }
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function structured_data_form_node_type_form_alter(&$form, &$form_state) {
+  $form['structured_data'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Structured data'),
+    '#collapsible' => TRUE,
+    '#group' => 'additional_settings',
+  );
+
+  $type = $form['#node_type']; // Nice shorthand.
+  $node_types = variable_get('structured_data_node_types', array());
+  if (!in_array($type->type, $node_types)) {
+    $disabled = t('disabled');
+    if (user_access('configure structured data')) {
+      $disabled = l(t('disabled'), 'admin/config/structured-data');
+    }
+    $form['structured_data']['structured_data_schema'] = array(
+      '#type' => 'markup',
+      '#markup' => '<p>' . t('Structured data is !disabled for this content type.', array('!disabled' => $disabled)) . '</p>',
+    );
+  }
+  else {
+    module_load_include('inc', 'structured_data', 'structured_data.schemas');
+    $schemas = structured_data_get_schemas();
+    $schema_options = array('' => (' - None - '));
+    foreach ($schemas as $s_name => $s_type) {
+      if (!$s_type['hidden']) {
+        $schema_options[$s_name] = $s_type['name'];
+      }
+    }
+    $form['structured_data']['structured_data_schema'] = array(
+      '#type' => 'select',
+      '#title' => t('Schema.org type'),
+      '#options' => $schema_options,
+      '#default_value' => variable_get('structured_data_schema_' . $type->type, ''),
+      //'#ajax' => structured_data_schema_select(), // @todo make this ajaxy!
+    );
+
+    $form['structured_data']['structured_data_properties'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Properties'),
+      '#description' => t('Please select a schema (above) to see required properties (below).'),
+    );
+
+    // Get all the fields for this node type.
+    $date_source_options = array(
+      '' => t('- none -'),
+      'created' => t('Created date'),
+      'changed' => t('Updated date'),
+    );
+    $person_source_options = array(
+      '' => t('- none -'),
+      'name' => t('User account that authored the content'),
+    );
+    $org_source_options = array(
+      '' => t('- none -'),
+      'site' => t('This website'),
+    );
+    $text_source_options = array(
+      '' => t('- none -'),
+      'title' => t('!title (node title)', array('!title' => check_plain(variable_get('title_label_' . $type->type, 'Title')))),
+    );
+    $image_source_options = array(
+      '' => t('- none -'),
+    );
+    $fields_info = field_info_instances('node', $type->type);
+    foreach ($fields_info as $field_name => $value) {
+      $field_info = field_info_field($field_name);
+      if ($field_info['module'] == 'text') {
+        $text_source_options[$field_info['field_name']] = $field_info['field_name'];
+      }
+      elseif ($field_info['type'] == 'image') {
+        $image_source_options[$field_info['field_name']] = $field_info['field_name'];
+      }
+    }
+
+    // Get the schema type.
+    $schema_type = variable_get('structured_data_schema_' . $type->type, 'Article');
+
+    // Map the field data to structured data.
+    foreach ($schemas[$schema_type]['required'] as $property => $property_info) {
+      switch ($property_info['type']) {
+        case 'text':
+          $source_options = $text_source_options;
+          break;
+        case 'ImageObject':
+          $source_options = $image_source_options;
+          break;
+        case 'DateTime':
+          $source_options = $date_source_options;
+          break;
+        case 'Person':
+          $source_options = $person_source_options;
+          break;
+        case 'Organization':
+          $source_options = $org_source_options;
+          break;
+        default:
+          $source_options = array('' => t('- none -'));
+          break;
+      }
+
+      $form['structured_data']['structured_data_properties']['structured_data_fields_' . $property] = array(
+        '#type' => 'select',
+        '#title' => t('!property data source', array('!property' => $property_info['name'])),
+        '#description' => t($property_info['description']),
+        '#options' => $source_options,
+        '#default_value' => variable_get('structured_data_fields_' . $property . '_' . $type->type, ''),
+        '#required' => TRUE,
+      );
+    }
+    //dpm($form);
+  }
+}
+
+/******************************************************************************
+ * Helper functions.
+ ******************************************************************************/
 
 /**
  * Helper function: Gets the site name data.
@@ -172,5 +308,63 @@ function structured_data_get_corporate_info() {
     }
   }
 
+  return $data;
+}
+
+/**
+ * Helper function, Gets the corporate contact data.
+ */
+function structured_data_get_node_info($node) {
+  $data = array();
+  // Only add the structured data if the node type is enabled.
+  $enabled_types = array_filter(variable_get('structured_data_node_types', array()));
+  if (in_array($node->type, $enabled_types)) {
+    // Get the schema type.
+    $data['@type'] = variable_get('structured_data_schema_' . $node->type, 'Article');
+    // Load the schema.
+    module_load_include('inc', 'structured_data', 'structured_data.schemas');
+    $schema = structured_data_get_schemas($data['@type']);
+    foreach ($schema['required'] as $property => $property_info) {
+      if ($field = variable_get('structured_data_fields_' . $property . '_' . $node->type, '')) {
+        if (property_exists($node, $field) && !empty($node->{$field}[$node->language])) {
+          // Special case the non-fields.
+          if ($field == 'title') {
+            $data[$property] = $node->{$field};
+          }
+          elseif ($field == 'name') {
+            $data[$property] = array(
+              '@type' => 'Person',
+              'name' => $node->{$field},
+            );
+          }
+          elseif ($field == 'site') {
+            $data[$property] = array(
+              '@type' => 'Organization',
+              'name' => ,
+            );
+          }
+          elseif ($field == 'created' || $field == 'changed') {
+            $data[$property] = format_date($node->{$field}, 'custom', 'Y-m-d\TH:i:s');
+          }
+          // Switch the fields based on type.
+          else {
+            switch ($property_info['type']) {
+              case 'ImageObject':
+                $value = '';
+                break;
+              case 'DateTime':
+                $value = '';
+                break;
+              default:
+                $data[$property] = $node->{$field}[$node->language][0]['value'];
+                break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+dpm($data);
   return $data;
 }
