@@ -228,11 +228,11 @@ function structured_data_get_site_name_info() {
   $data =  array();
 
   // Get the site name.
-  if (variable_get('structured_data_site_name_default', FALSE)) {
-    $data['name'] = variable_get('site_name', '');
-  }
-  elseif ($custom_name = variable_get('structured_data_site_name_custom', FALSE)) {
+  if ($custom_name = variable_get('structured_data_site_name_custom', FALSE)) {
     $data['name'] = $custom_name;
+  }
+  else {
+    $data['name'] = variable_get('site_name', '');
   }
 
   // Get the alternative site name.
@@ -251,13 +251,13 @@ function structured_data_get_site_logo_info() {
 
   if ($custom_logo = variable_get('structured_data_site_logo_custom', FALSE)) {
     if ($logo = file_load($custom_logo)) {
-      $data['path'] = file_create_url($logo->uri);
+      $data['logo'] = file_create_url($logo->uri);
     }
   }
   else {
     $default_theme = variable_get('theme_default', 'bartik');
     $logo_path = theme_get_setting('logo', $default_theme);
-    $data['path'] = $logo_path;
+    $data['logo'] = $logo_path;
   }
 
   return $data;
