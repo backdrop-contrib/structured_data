@@ -60,23 +60,21 @@ function structured_data_preprocess_html(&$vars) {
       $data['@type'] = $schema_type;
     }
 
+    // Add site name info.
+    $structured_data['name'] = structured_data_get_site_name();
+    // Get the alternative site name.
+    if ($alternative_site_name = variable_get('structured_data_site_name_alternative', FALSE)) {
+      $structured_data['alternateName'] = $alternative_site_name;
+    }
+
     // If metatag has set a cononical URL, add that here too.
     $head_elements = drupal_add_html_head();
     if (!empty($head_elements['metatag_canonical'])) {
       $structured_data['url'] = $head_elements['metatag_canonical']['#value'];
     }
-    else {
-      // URL is required, so we fall back to using the site home page.
-      $structured_data['url'] = url('', array('absolute' => TRUE));
-    }
 
-    // Add site name info.
-    $name_data = structured_data_get_site_name_info();
-    $structured_data = array_merge($structured_data, $name_data);
-
-    // Add site logo info.
-    $logo_data = structured_data_get_site_logo_info();
-    $structured_data = array_merge($structured_data, $logo_data);
+    // Add site logo.
+    $structured_data['logo'] = structured_data_get_site_logo();
 
     // Add local business info.
     $local_data = structured_data_get_local_info();
@@ -86,8 +84,6 @@ function structured_data_preprocess_html(&$vars) {
     $corp_data = structured_data_get_corporate_info();
     $structured_data = array_merge($structured_data, $corp_data);
   }
-
-  dpm($structured_data);
 
   // If there is any sructured data, add it to the page.
   if (!empty($structured_data)) {
@@ -143,7 +139,7 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
     $form['structured_data']['structured_data_properties'] = array(
       '#type' => 'fieldset',
       '#title' => t('Properties'),
-      '#description' => t('Please select a schema (above) to see required properties (below).'),
+      '#description' => t('Please select a schema (above) to see associated properties (below).'),
     );
 
     // Get all the fields for this node type.
@@ -181,7 +177,7 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
     // Get the schema type.
     $schema_type = variable_get('structured_data_schema_' . $type->type, 'Article');
 
-    // Map the field data to structured data.
+    // Map the field data to REQUIRED structured data.
     foreach ($schemas[$schema_type]['required'] as $property => $property_info) {
       switch ($property_info['type']) {
         case 'text':
@@ -213,7 +209,38 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
         '#required' => TRUE,
       );
     }
-    //dpm($form);
+
+    // Map the field data to RECOMMENDED structured data.
+    foreach ($schemas[$schema_type]['recommended'] as $property => $property_info) {
+      switch ($property_info['type']) {
+        case 'text':
+          $source_options = $text_source_options;
+          break;
+        case 'ImageObject':
+          $source_options = $image_source_options;
+          break;
+        case 'DateTime':
+          $source_options = $date_source_options;
+          break;
+        case 'Person':
+          $source_options = $person_source_options;
+          break;
+        case 'Organization':
+          $source_options = $org_source_options;
+          break;
+        default:
+          $source_options = array('' => t('- none -'));
+          break;
+      }
+
+      $form['structured_data']['structured_data_properties']['structured_data_rec_fields_' . $property] = array(
+        '#type' => 'select',
+        '#title' => t('!property data source', array('!property' => $property_info['name'])),
+        '#description' => t($property_info['description']),
+        '#options' => $source_options,
+        '#default_value' => variable_get('structured_data_rec_fields_' . $property . '_' . $type->type, ''),
+      );
+    }
   }
 }
 
@@ -222,52 +249,50 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
  ******************************************************************************/
 
 /**
- * Helper function: Gets the site name data.
+ * Gets only the site name.
+ *
+ * @return (string) Site name.
  */
-function structured_data_get_site_name_info() {
-  $data =  array();
-
+function structured_data_get_site_name() {
   // Get the site name.
   if ($custom_name = variable_get('structured_data_site_name_custom', FALSE)) {
-    $data['name'] = $custom_name;
+    $site_name = $custom_name;
   }
   else {
-    $data['name'] = variable_get('site_name', '');
+    $site_name = variable_get('site_name', '');
   }
 
-  // Get the alternative site name.
-  if ($alternative_site_name = variable_get('structured_data_site_name_alternative', FALSE)) {
-    $data['alternateName'] = $alternative_site_name;
-  }
-
-  return $data;
+  return $site_name;
 }
 
 /**
- * Helper function: Gets the site logo data.
+ * Gets the a URL to the site logo.
+ *
+ * @return (string) Path to a suitable logo file.
  */
-function structured_data_get_site_logo_info() {
-  $data =  array();
-
+function structured_data_get_site_logo() {
   if ($custom_logo = variable_get('structured_data_site_logo_custom', FALSE)) {
     if ($logo = file_load($custom_logo)) {
-      $data['logo'] = file_create_url($logo->uri);
+      $logo_path = file_create_url($logo->uri);
     }
   }
   else {
     $default_theme = variable_get('theme_default', 'bartik');
     $logo_path = theme_get_setting('logo', $default_theme);
-    $data['logo'] = $logo_path;
   }
 
-  return $data;
+  return $logo_path;
 }
 
 /**
- * Helper function: Gets the local business data.
+ * Gets the local business data.
+ *
+ * @return (array) Data matching schema.org definition for address.
  */
 function structured_data_get_local_info() {
-  $data = array('address' => array('@type' => 'PostalAddress'));
+  $data = array(
+    'address' => array('@type' => 'PostalAddress'),
+  );
 
   // Address parts are grouped together.
   if ($address = variable_get('structured_data_address', FALSE)) {
@@ -287,7 +312,9 @@ function structured_data_get_local_info() {
 }
 
 /**
- * Helper function: Gets the corporate contact data.
+ * Gets the corporate contact data.
+ *
+ * @return (array) Data matching schema.org definition for contactPoint.
  */
 function structured_data_get_corporate_info() {
   $data = array();
@@ -312,7 +339,7 @@ function structured_data_get_corporate_info() {
 }
 
 /**
- * Helper function, Gets the corporate contact data.
+ * Gets the node-related structured data.
  */
 function structured_data_get_node_info($node) {
   $data = array();
@@ -324,9 +351,28 @@ function structured_data_get_node_info($node) {
     // Load the schema.
     module_load_include('inc', 'structured_data', 'structured_data.schemas');
     $schema = structured_data_get_schemas($data['@type']);
-    foreach ($schema['required'] as $property => $property_info) {
-      if ($field = variable_get('structured_data_fields_' . $property . '_' . $node->type, '')) {
-        if (property_exists($node, $field) && !empty($node->{$field}[$node->language])) {
+    $properties = array_merge($schema['required'], $schema['recommended']);
+    foreach ($properties as $property => $property_info) {
+      $field = variable_get('structured_data_fields_' . $property . '_' . $node->type, FALSE);
+      if (!$field){
+        $field = variable_get('structured_data_rec_fields_' . $property . '_' . $node->type, FALSE);
+      }
+      if ($field) {
+        if ($property == 'publisher') {
+          $logo_path = structured_data_get_site_logo();
+          $size = getimagesize($logo_path);
+          $data[$property] = array(
+            '@type' => 'Organization',
+            'name' => structured_data_get_site_name(),
+            'logo' => array(
+              '@type' => 'ImageObject',
+              'url' => $logo_path,
+              'width' => $size[0],
+              'height' => $size[1],
+            ),
+          );
+        }
+        elseif (property_exists($node, $field) && !empty($node->{$field}[$node->language])) {
           // Special case the non-fields.
           if ($field == 'title') {
             $data[$property] = $node->{$field};
@@ -337,12 +383,6 @@ function structured_data_get_node_info($node) {
               'name' => $node->{$field},
             );
           }
-          elseif ($field == 'site') {
-            $data[$property] = array(
-              '@type' => 'Organization',
-              'name' => ,
-            );
-          }
           elseif ($field == 'created' || $field == 'changed') {
             $data[$property] = format_date($node->{$field}, 'custom', 'Y-m-d\TH:i:s');
           }
@@ -350,13 +390,19 @@ function structured_data_get_node_info($node) {
           else {
             switch ($property_info['type']) {
               case 'ImageObject':
-                $value = '';
+                $image_path = file_create_url($node->{$field}[$node->language][0]['uri']);
+                $size = getimagesize($image_path);
+                $data[$property] = array(
+                  '@type' => 'ImageObject',
+                  'url' => $image_path,
+                  'width' => $size[0],
+                  'height' => $size[1],
+                );
                 break;
-              case 'DateTime':
-                $value = '';
-                break;
+
               default:
-                $data[$property] = $node->{$field}[$node->language][0]['value'];
+                // Lets treat them all as text unless they need special treatment.
+                $data[$property] = check_plain(strip_tags($node->{$field}[$node->language][0]['value']));
                 break;
             }
           }
@@ -364,7 +410,6 @@ function structured_data_get_node_info($node) {
       }
     }
   }
-
 dpm($data);
   return $data;
 }

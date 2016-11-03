@@ -47,6 +47,11 @@ function structured_data_get_schemas($type = NULL) {
           'description' => 'A short description of the article.',
           'type' => 'text',
         ),
+        'dateModified' => array(
+          'name' => 'Date Modified',
+          'description' => 'The date and time the article was most recently modified',
+          'type' => 'DateTime',
+        ),
       ),
     ),
     'BlogPosting' => array(
@@ -78,6 +83,18 @@ function structured_data_get_schemas($type = NULL) {
           'type' => 'Person',
         ),
       ),
+      'recommended' => array(
+        'description' => array(
+          'name' => 'Description',
+          'description' => 'A short description of the article.',
+          'type' => 'text',
+        ),
+        'dateModified' => array(
+          'name' => 'Date Modified',
+          'description' => 'The date and time the article was most recently modified',
+          'type' => 'DateTime',
+        ),
+      ),
     ),
     'NewsArticle' => array(
       'name' => t('News Article'),
@@ -106,6 +123,18 @@ function structured_data_get_schemas($type = NULL) {
           'name' => 'Author',
           'description' => 'The author of the article.',
           'type' => 'Person',
+        ),
+      ),
+      'recommended' => array(
+        'description' => array(
+          'name' => 'Description',
+          'description' => 'A short description of the article.',
+          'type' => 'text',
+        ),
+        'dateModified' => array(
+          'name' => 'Date Modified',
+          'description' => 'The date and time the article was most recently modified',
+          'type' => 'DateTime',
         ),
       ),
     ),
