@@ -124,7 +124,7 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
     $schemas = structured_data_get_schemas();
     $schema_options = array('' => (' - None - '));
     foreach ($schemas as $s_name => $s_type) {
-      if (!$s_type['hidden']) {
+      if (!isset($s_type['hidden']) || (isset($s_type['hidden']) && $s_type['hidden'] == TRUE)) {
         $schema_options[$s_name] = $s_type['name'];
       }
     }
@@ -410,6 +410,6 @@ function structured_data_get_node_info($node) {
       }
     }
   }
-dpm($data);
+
   return $data;
 }

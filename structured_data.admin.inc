@@ -8,7 +8,7 @@
  * Form callback for admin settings page.
  */
 function structured_data_settings_form() {
-  $site_name = variable_get('site_name', '');
+  $site_name = config_get('system.core', 'site_name');
   $form['marketing'] = array(
     '#type' => 'fieldset',
     '#title' => t('Marketing details'),
@@ -28,12 +28,13 @@ function structured_data_settings_form() {
     '#default_value' => variable_get('structured_data_site_name_alternative', ''),
   );
 
-  $logo_data = structured_data_get_site_logo_info();
-  $logo_info = getimagesize($logo_data['path']);
+  $logo_path = structured_data_get_site_logo();
+  $logo_info = getimagesize($logo_path);
   $data['width'] = $logo_info[0];
   $data['height'] = $logo_info[1];
 
-  if ($logo_info['width'] > 600 || $logo_info['height'] > 60) {
+  if ((isset($logo_info['width']) && $logo_info['width'] > 600) ||
+     (isset($logo_info['height']) && $logo_info['height'] > 60)) {
     $problem_width = 'a width greater than 600px';
     $problem_height = 'a height greater than 60px';
     $problem_both = $problem_width . ' or ' . $problem_height;
@@ -42,19 +43,24 @@ function structured_data_settings_form() {
       $problem = $problem_both;
     }
     else {
-      if ($logo_info['width'] > 600) {
+      if (isset($logo_info['width']) && $logo_info['width'] > 600) {
         $problem = $problem_width;
       }
-      elseif ($logo_info['height'] > 60) {
+      elseif (isset($logo_info['height']) && $logo_info['height'] > 60) {
         $problem = $problem_height;
       }
     }
     drupal_set_message(t('Logos with !problem will be rejected by Google.', array('!problem' => $problem)), 'warning');
   }
+
+  $default = '';
+  if (isset($logo_data['path'])) {
+    $default = theme('image', array('path' => $logo_data['path']));
+  }
   $form['marketing']['structured_data_site_logo_current'] = array(
     '#type' =>'item',
     '#title' => t('Image that will be presented to search engines as your logo:'),
-    '#markup' => theme('image', array('path' => $logo_data['path'])),
+    '#markup' => $default,
   );
   $form['marketing']['structured_data_site_logo_custom'] = array(
     '#type' => 'managed_file',

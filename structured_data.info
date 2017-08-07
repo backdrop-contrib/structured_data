@@ -1,5 +1,6 @@
+type = module
 name = Structured data markup
 description = Annotate your content to generate Rich Search Snippets.
-core = 7.x
+backdrop = 1.x
 
 configure = admin/config/structured-data
