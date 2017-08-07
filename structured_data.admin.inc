@@ -23,15 +23,16 @@ function structured_data_settings_form() {
   );
   $form['marketing']['structured_data_site_name_alternative'] = array(
     '#type' =>'textfield',
-    '#title' => t('Alternative site name (optional)'),
-    '#description' => t('An alternate name you want Search Engines to consider.'),
+    '#title' => t('An alternate name you want Search Engines to consider'),
     '#default_value' => variable_get('structured_data_site_name_alternative', ''),
   );
 
   $logo_path = structured_data_get_site_logo();
-  $logo_info = getimagesize($logo_path);
-  $data['width'] = $logo_info[0];
-  $data['height'] = $logo_info[1];
+  if (!empty($logo_path)) {
+    $logo_info = getimagesize($logo_path);
+    $data['width'] = $logo_info[0];
+    $data['height'] = $logo_info[1];
+  }
 
   if ((isset($logo_info['width']) && $logo_info['width'] > 600) ||
      (isset($logo_info['height']) && $logo_info['height'] > 60)) {
@@ -64,7 +65,7 @@ function structured_data_settings_form() {
   );
   $form['marketing']['structured_data_site_logo_custom'] = array(
     '#type' => 'managed_file',
-    '#title' => t('Custom site logo'),
+    '#title' => t('Logo'),
     '#description' => t('Logos should be exactly 60px tall with width <= 600px. Allowed extensions: jpg, jpeg, png, gif.'),
     '#upload_location' => 'public://structured_data/',
     '#default_value' => variable_get('structured_data_site_logo_custom', ''),
@@ -73,6 +74,42 @@ function structured_data_settings_form() {
       'file_validate_extensions' => array('gif png jpg jpeg'),
       'file_validate_image_resolution' => array('600x60'),
     ),
+  );
+
+  // Node Type filter.
+  $form['nodes'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Content types'),
+    '#description' => t('Enable Rich Snippets for the following content types.'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+  );
+
+  $link_options = array('query' => array('destination' => 'admin/config/structured-data'));
+
+  $type_rows = array();
+  $type_defaults = array();
+  foreach (node_type_get_types() as $type) {
+    $type_defaults[$type->type] = $type->type;
+    $type_rows[$type->type] = array(
+      'type' => t($type->name),
+      'content' => structured_data_get_node_type_config($type->type),
+      'link' => l(t('Configure'), 'admin/structure/types/manage/' . $type->type . '/configure', $link_options),
+    );
+  }
+
+  // Set the table select.
+  $form['nodes']['structured_data_node_types'] = array(
+    '#title' => t('Node Types'),
+    '#type' => 'tableselect',
+    '#header' => array(
+      'type' => t('Content Type'),
+      'content' => t('Current rich snippet settings'),
+      'link' => t('Configure'),
+    ),
+    '#options' => $type_rows,
+    '#default_value' => variable_get('structured_data_node_types', $type_defaults),
+    '#empty' => t('No Content Types.'),
   );
 
   $form['corporate'] = array(
@@ -163,40 +200,6 @@ function structured_data_settings_form() {
     '#type' =>'textfield',
     '#title' => t('Zip'),
     '#default_value' => variable_get('structured_data_zip', ''),
-  );
-
-  // Node Type filter.
-  $form['nodes'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Content types'),
-    '#description' => t('Enable Rich Snippets for the following content types.'),
-    '#collapsible' => FALSE,
-    '#collapsed' => FALSE,
-  );
-
-  $type_rows = array();
-  $type_defaults = array();
-  foreach (node_type_get_types() as $type) {
-    $type_defaults[$type->type] = $type->type;
-    $type_rows[$type->type] = array(
-      'type' => t($type->name),
-      'content' => structured_data_get_node_type_config($type->type),
-      'link' => l(t('Configure'), 'admin/structure/types/manage/' . $type->type . '/configure'),
-    );
-  }
-
-  // Set the table select.
-  $form['nodes']['structured_data_node_types'] = array(
-    '#title' => t('Node Types'),
-    '#type' => 'tableselect',
-    '#header' => array(
-      'type' => t('Content Type'),
-      'content' => t('Current rich snippet settings'),
-      'link' => t('Configure'),
-    ),
-    '#options' => $type_rows,
-    '#default_value' => variable_get('structured_data_node_types', $type_defaults),
-    '#empty' => t('No Content Types.'),
   );
 
   $form = system_settings_form($form);
