@@ -1,0 +1,21 @@
+{
+    "_config_name": "structured_data.settings",
+    "site_name_custom": "",
+    "site_name_alternative": "",
+    "site_logo_custom": 0,
+    "node_types": {
+        "page": 0,
+        "post": "post"
+    },
+    "phone": "",
+    "phone_type": "",
+    "phone_options": {
+        "TollFree": 0,
+        "HearingImpairedSupported": 0
+    },
+    "business_type": "",
+    "address": "",
+    "city": "",
+    "state": "",
+    "zip": ""
+}

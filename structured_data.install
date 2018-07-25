@@ -5,35 +5,87 @@
  */
 
 /**
- * Implements hook_uninstall().
+ * Implements hook_update_last_removed().
  */
-function structured_data_uninstall() {
-  // Marketing variables.
-  variable_del('structured_data_site_name_default');
-  variable_del('structured_data_site_name_custom');
-  variable_del('structured_data_site_name_alternative');
-  variable_del('structured_data_site_logo_default');
-  variable_del('structured_data_site_logo_custom');
-  // Local Business variables.
-  variable_del('structured_data_business_type');
-  variable_del('structured_data_address');
-  variable_del('structured_data_city');
-  variable_del('structured_data_state');
-  variable_del('structured_data_zip');
-  // Corporate contact variables.
-  variable_del('structured_data_phone');
-  variable_del('structured_data_phone_type');
-  variable_del('structured_data_phone_options');
-  // Node type variables.
-  variable_del('structured_data_node_types');
-  variable_del('');
+function structured_data_update_last_removed() {
+  return 7001;
 }
 
-
 /**
- * Remove settings to use default site name and logo, we now fall back to those.
+ * Convert from varaibles to config.
  */
-function structured_data_update_7001() {
+function structured_data_update_1000() {
+  $config = config('structured_data.settings');
+
+  // Site variables.
+  $site_name = config_get('system.core', 'site_name');
+  $config->set(update_variable_get('structured_data_site_name_default', $site_name));
+  variable_del('structured_data_site_name_default');
+  $config->set(update_variable_get('structured_data_site_name_custom', ''));
+  variable_del('structured_data_site_name_custom');
+  $config->set(update_variable_get('structured_data_site_name_alternative', ''));
+  variable_del('structured_data_site_name_alternative');
+  $config->set(update_variable_get('structured_data_site_logo_default', ''));
+  variable_del('structured_data_site_logo_default');
+  $config->set(update_variable_get('structured_data_site_logo_custom', ''));
+  variable_del('structured_data_site_logo_custom');
+
+  // Local Business variables.
+  $config->set(update_variable_get('structured_data_business_type', ''));
+  variable_del('structured_data_business_type');
+  $config->set(update_variable_get('structured_data_address', ''));
+  variable_del('structured_data_address');
+  $config->set(update_variable_get('structured_data_city', ''));
+  variable_del('structured_data_city');
+  $config->set(update_variable_get('structured_data_state', ''));
+  variable_del('structured_data_state');
+  $config->set(update_variable_get('structured_data_zip', ''));
+  variable_del('structured_data_zip');
+
+  // Corporate contact variables.
+  $config->set(update_variable_get('structured_data_phone', ''));
+  variable_del('structured_data_phone');
+  $config->set(update_variable_get('structured_data_phone_type', ''));
+  variable_del('structured_data_phone_type');
+  $config->set(update_variable_get('structured_data_phone_options', ''));
+  variable_del('structured_data_phone_options');
+
+  // Node type variables.
+  $config->set(update_variable_get('structured_data_node_types', array()));
+  variable_del('structured_data_node_types');
+
+  // Save the global config.
+  $config->save();
+
+  foreach (node_type_get_names() as $machine => $human) {
+    $schema_type = update_variable_get('structured_data_schema_' . $machine, 'Article');
+    //variable_del('structured_data_schema_' . $machine);
+
+    $structured_data = array(
+      'schema' => $schema_type,
+      'properties' => array(
+        'required' => array(),
+        'recommended' => array(),
+      ),
+    );
+
+    module_load_include('inc', 'structured_data', 'structured_data.schemas');
+    $schemas = structured_data_get_schemas();
+    foreach ($schemas[$schema_type]['required'] as $property => $property_info) {
+      $structured_data['properties']['required'] = update_variable_get('structured_data_fields_' . $property . '_' . $machine, '');
+      //variable_del('structured_data_fields_' . $property . '_' . $machine);
+    }
+    foreach ($schemas[$schema_type]['recommended'] as $property => $property_info) {
+      $structured_data['properties']['recommended'] = update_variable_get('structured_data_fields_' . $property . '_' . $machine, '');
+      //variable_del('structured_data_fields_' . $property . '_' . $machine);
+    }
+
+    $type_config = config('node.type.' . $machine);
+    $type_config->set('structured_data', $structured_data);
+    $type_config->save();
+  }
+
+  // Delete these legacy variables too, just to be on the safe side.
   variable_del('structured_data_site_name_default');
   variable_del('structured_data_site_logo_default');
 }
