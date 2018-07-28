@@ -14,147 +14,277 @@ function structured_data_get_schemas($type = NULL) {
   $schemas = array(
     'Article' => array(
       'name' => t('Article'),
-      'required' => array(
+      'properties' => array(
         'headline' => array(
           'name' => 'Headline',
           'description' => 'Headlines should not exceed 110 characters.',
-          'type' => 'text',
+          'type' => array('Text'),
+          'required' => TRUE,
         ),
         'image' => array(
           'name' => 'Image',
           'description' => 'Images should be at least 696 pixels wide.',
-          'type' => 'ImageObject',
+          'type' => array('ImageObject'),
+          'required' => TRUE,
         ),
         'publisher' => array(
           'name' => 'Publisher',
           'description' => 'The publisher of the article.',
-          'type' => 'Organization',
+          'type' => array('Organization'),
+          'required' => TRUE,
         ),
         'datePublished' => array(
           'name' => 'Date published',
           'description' => 'The date and time the article was first published',
-          'type' => 'DateTime',
+          'type' => array('DateTime'),
+          'required' => TRUE,
         ),
         'author' => array(
           'name' => 'Author',
           'description' => 'The author of the article.',
-          'type' => 'Person',
+          'type' => array('Person'),
+          'required' => TRUE,
         ),
-      ),
-      'recommended' => array(
         'description' => array(
           'name' => 'Description',
           'description' => 'A short description of the article.',
-          'type' => 'text',
+          'type' => array('Text'),
         ),
         'dateModified' => array(
           'name' => 'Date Modified',
           'description' => 'The date and time the article was most recently modified',
-          'type' => 'DateTime',
+          'type' => array('DateTime'),
         ),
       ),
     ),
     'BlogPosting' => array(
       'name' => t('Blog Posting'),
-      'required' => array(
+      'properties' => array(
         'headline' => array(
           'name' => 'Headline',
           'description' => 'Headlines should not exceed 110 characters.',
-          'type' => 'text',
+          'type' => array('Text'),
+          'required' => TRUE,
         ),
         'image' => array(
           'name' => 'Image',
           'description' => 'Images should be at least 696 pixels wide.',
-          'type' => 'ImageObject',
+          'type' => array('ImageObject'),
+          'required' => TRUE,
         ),
         'publisher' => array(
           'name' => 'Publisher',
           'description' => 'The publisher of the article.',
-          'type' => 'Organization',
+          'type' => array('Organization'),
+          'required' => TRUE,
         ),
         'datePublished' => array(
           'name' => 'Date published',
           'description' => 'The date and time the article was first published',
-          'type' => 'DateTime',
+          'type' => array('DateTime'),
+          'required' => TRUE,
         ),
         'author' => array(
           'name' => 'Author',
           'description' => 'The author of the article.',
-          'type' => 'Person',
+          'type' => array('Person'),
+          'required' => TRUE,
         ),
-      ),
-      'recommended' => array(
         'description' => array(
           'name' => 'Description',
           'description' => 'A short description of the article.',
-          'type' => 'text',
+          'type' => array('Text'),
         ),
         'dateModified' => array(
           'name' => 'Date Modified',
           'description' => 'The date and time the article was most recently modified',
-          'type' => 'DateTime',
+          'type' => array('DateTime'),
         ),
       ),
     ),
     'NewsArticle' => array(
       'name' => t('News Article'),
-      'required' => array(
+      'properties' => array(
         'headline' => array(
           'name' => 'Headline',
           'description' => 'Headlines should not exceed 110 characters.',
-          'type' => 'text',
+          'type' => array('Text'),
+          'required' => TRUE,
         ),
         'image' => array(
           'name' => 'Image',
           'description' => 'Images should be at least 696 pixels wide.',
-          'type' => 'ImageObject',
+          'type' => array('ImageObject'),
+          'required' => TRUE,
         ),
         'publisher' => array(
           'name' => 'Publisher',
           'description' => 'The publisher of the article.',
-          'type' => 'Organization',
+          'type' => array('Organization'),
+          'required' => TRUE,
         ),
         'datePublished' => array(
           'name' => 'Date published',
           'description' => 'The date and time the article was first published',
-          'type' => 'DateTime',
+          'type' => array('DateTime'),
+          'required' => TRUE,
         ),
         'author' => array(
           'name' => 'Author',
           'description' => 'The author of the article.',
-          'type' => 'Person',
+          'type' => array('Person'),
+          'required' => TRUE,
         ),
-      ),
-      'recommended' => array(
         'description' => array(
           'name' => 'Description',
           'description' => 'A short description of the article.',
-          'type' => 'text',
+          'type' => array('Text'),
         ),
         'dateModified' => array(
           'name' => 'Date Modified',
           'description' => 'The date and time the article was most recently modified',
-          'type' => 'DateTime',
+          'type' => array('DateTime'),
         ),
       ),
     ),
-    'Organization' => array(
-      'name' => t('Organization'),
-      'required' => array(),
-      'hidden' => TRUE,
-    ),
-    'Person' => array(
-      'name' => t('Person'),
-      'required' => array(),
-      'hidden' => TRUE,
-    ),
-    'VideoObject' => array(
-      'name' => t('Video'),
-      'required' => array(
-        'name',
-        'description',
-        'thumbnailUrl',
-        'publisher',
+    'Recipe' => array(
+      'name' => t('Recipe'),
+      'properties' => array(
+        'name' => array(
+          'name' => 'Name',
+          'description' => 'The name of the recipe.',
+          'type' => array('Text'),
+          'required' => TRUE,
+        ),
+        'datePublished' => array(
+          'name' => 'Date published',
+          'description' => 'The date and time the recipe was first published',
+          'type' => array('DateTime'),
+          'required' => TRUE,
+        ),
+        'image' => array(
+          'name' => 'Image',
+          'description' => 'Images should be at least 696 pixels wide.',
+          'type' => array('ImageObject'),
+        ),
+        'description' => array(
+          'name' => 'Description',
+          'description' => 'A description of the recipe.',
+          'type' => array('Text'),
+        ),
+        'author' => array(
+          'name' => 'Author',
+          'description' => 'The author of the recipe.',
+          'type' => array('Person'),
+        ),
+        'prepTime' => array(
+          'name' => 'Prep Time',
+          'description' => 'The length of time it takes to prepare the items to be used in instructions or a direction, in ISO 8601 duration format.',
+          'type' => array('Duration'),
+        ),
+        'cookTime' => array(
+          'name' => 'Cook Time',
+          'description' => 'The time it takes to actually cook the dish, in ISO 8601 duration format.',
+          'type' => array('Duration'),
+        ),
+        'totalTime' => array(
+          'name' => 'Total Time',
+          'description' => 'The total time required to perform instructions or a direction (including time to prepare the supplies), in ISO 8601 duration format.',
+          'type' => array('Duration'),
+        ),
+        'cookingMethod' => array(
+          'name' => 'Cooking Method',
+          'description' => 'The method of cooking, such as Frying, Steaming, ...',
+          'type' => array('Text'),
+        ),
+        'recipeCategory' => array(
+          'name' => 'Recipe Category',
+          'description' => 'The category of the recipe—for example, appetizer, entree, etc.',
+          'type' => array('Text'),
+        ),
+        'recipeCuisine' => array(
+          'name' => 'Recipe Cuisine',
+          'description' => 'The cuisine of the recipe (for example, French or Ethiopian).',
+          'type' => array('Text'),
+        ),
+        'recipeIngredient' => array(
+          'name' => 'Recipe Ingredient',
+          'description' => 'A single ingredient used in the recipe, e.g. sugar, flour or garlic.',
+          'type' => array('Text'),
+        ),
+        'recipeInstructions' => array(
+          'name' => 'Recipe Instructions',
+          'description' => 'A step in making the recipe, in the form of a single item (document, video, etc.) or an ordered list with HowToStep and/or HowToSection items.',
+          'type' => array('Text', 'ItemList', 'CreativeWork'),
+        ),
+        'recipeYield' => array(
+          'name' => 'Recipe Yield',
+          'description' => 'The quantity produced by the recipe (for example, number of people served, number of servings, etc).',
+          'type' => array('QuantitativeValue', 'Text'),
+          'hidden' => TRUE,
+        ),
+        'suitableForDiet' => array(
+          'name' => 'Suitable For Diet',
+          'description' => 'Indicates a dietary restriction or guideline for which this recipe or menu item is suitable, e.g. diabetic, halal etc.',
+          'type' => array('RestrictedDiet'),
+          'hidden' => TRUE,
+        ),
+        'nutrition' => array(
+          'name' => 'Nutrition Information',
+          'description' => 'Nutrition information about the recipe or menu item.',
+          'type' => array('NutritionInformation'),
+          'hidden' => TRUE,
+        ),
+      ),
+
+/*
+      'name' => 'Mom\'s World Famous Banana Bread',
+      'cookTime' => 'PT1H',
+      'datePublished' => '2009-05-08',
+      'description' => 'This classic banana bread recipe comes from my mom -- the walnuts add a nice texture and flavor to the banana bread.',
+      'image' => 'bananabread.jpg',
+      'recipeIngredient' => array(
+        '3 or 4 ripe bananas, smashed',
+        '1 egg',
+        '3/4 cup of sugar',
+      ),
+      "prepTime": "PT15M",
+      "recipeInstructions": "Preheat the oven to 350 degrees. Mix in the ingredients in a bowl. Add the flour last. Pour the mixture into a loaf pan and bake for one hour.",
+      "suitableForDiet": "http://schema.org/LowFatDiet"
+*/
+      'VideoObject' => array(
+        'name' => t('Video'),
+        'properties' => array(
+          'name' => array(
+            'required' => TRUE,
+          ),
+          'description' => array(
+            'name' => 'Description',
+            'description' => 'A description of the video.',
+            'type' => array('Text'),
+          ),
+          'thumbnailUrl' => array(
+            'name' => 'Thumbnail',
+            'description' => 'Thumbnail image for an image or video.',
+            'type' => array('ImageObject'),
+          ),
+          'publisher' => array(
+            'name' => 'Publisher',
+            'description' => 'The publisher of the video.',
+            'type' => array('Organization'),
+          ),
+        ),
+      ),
+      // @todo below here
+      'Organization' => array(
+        'name' => t('Organization'),
+        'properties' => array(),
+        'hidden' => TRUE,
+      ),
+      'Person' => array(
+        'name' => t('Person'),
+        'properties' => array(),
+        'hidden' => TRUE,
       ),
     ),
   );
