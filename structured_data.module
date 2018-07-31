@@ -188,7 +188,13 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
     $image_source_options = array(
       '' => t('- none -'),
     );
+    $video_source_options = array(
+      '' => t('- none -'),
+    );
     $duration_source_options = array(
+      '' => t('- none -'),
+    );
+    $rating_source_options = array(
       '' => t('- none -'),
     );
 
@@ -204,6 +210,9 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
       elseif ($field_info['type'] == 'image') {
         $image_source_options[$field_info['field_name']] = $field_instance['label'];
       }
+      elseif ($field_info['type'] == 'youtube') {
+        $video_source_options[$field_info['field_name']] = $field_instance['label'];
+      }
       elseif ($field_info['module'] == 'number') {
         $duration_source_options[$field_info['field_name']] = $field_instance['label'];
       }
@@ -212,6 +221,9 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
       }
       elseif ($field_info['module'] == 'reference') {
         $text_source_options[$field_info['field_name']] = $field_instance['label'];
+      }
+      elseif ($field_info['module'] == 'fivestar') {
+        $rating_source_options[$field_info['field_name']] = $field_instance['label'];
       }
     }
 
@@ -226,6 +238,9 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
           case 'ImageObject':
             $source_options += $image_source_options;
             break;
+          case 'VideoObject':
+            $source_options += $video_source_options;
+            break;
           case 'DateTime':
             $source_options += $date_source_options;
             break;
@@ -237,6 +252,9 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
             break;
           case 'Duration':
             $source_options += $duration_source_options;
+            break;
+          case 'AggregateRating':
+            $source_options += $rating_source_options;
             break;
         }
       }
@@ -448,6 +466,7 @@ function structured_data_get_node_info($node) {
           // Get the field type.
           $field_info = field_info_field($field);
 
+          // @todo make these into hooks so any module can implement?
           switch ($field_info['module']) {
             case 'image':
               if (array_key_exists('uri', $node->{$field}[$node->langcode][0])) {
@@ -462,6 +481,15 @@ function structured_data_get_node_info($node) {
               }
               break;
 
+            case 'youtube':
+              if (array_key_exists('input', $node->{$field}[$node->langcode][0])) {
+                $data[$property] = array(
+                  '@type' => 'VideoObject',
+                  'embedUrl' => $node->{$field}[$node->langcode][0]['input'],
+                );
+              }
+              break;
+
             case 'number':
               if (array_key_exists('value', $node->{$field}[$node->langcode][0])) {
                 $schema_type = reset($property_info['type']);
@@ -470,6 +498,13 @@ function structured_data_get_node_info($node) {
                   $data[$property] = 'PT' . $value . 'M';
                 }
                 // @todo Other numbers?
+              }
+              break;
+
+            case 'fivestar':
+              if (array_key_exists('average', $node->{$field}[$node->langcode][0])) {
+                // Divide b/c votingAPI works in percents, but we're using 5 stars.
+                $data[$property] = $node->{$field}[$node->langcode][0]['average']/20;
               }
               break;
 
@@ -491,7 +526,7 @@ function structured_data_get_node_info($node) {
     } // foreach $property_info
   } // if enabled node type
 
-  dpm($data);
+  //dpm($data);
 
   return $data;
 }

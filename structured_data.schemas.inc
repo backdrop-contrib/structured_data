@@ -172,6 +172,11 @@ function structured_data_get_schemas($type = NULL) {
           'description' => 'Images should be at least 696 pixels wide.',
           'type' => array('ImageObject'),
         ),
+        'video' => array(
+          'name' => 'Video',
+          'description' => 'An embedded video object or a video file.',
+          'type' => array('VideoObject'),
+        ),
         'description' => array(
           'name' => 'Description',
           'description' => 'A description of the recipe.',
@@ -202,9 +207,9 @@ function structured_data_get_schemas($type = NULL) {
           'description' => 'The total time required to perform instructions or a direction (including time to prepare the supplies), in ISO 8601 duration format.',
           'type' => array('Duration'),
         ),
-        'cookingMethod' => array(
-          'name' => 'Cooking Method',
-          'description' => 'The method of cooking, such as Frying, Steaming, ...',
+        'keywords' => array(
+          'name' => 'Keywords',
+          'description' => 'Keywords or tags used to describe this content. Multiple entries in a keywords list are typically delimited by commas.',
           'type' => array('Text'),
         ),
         'recipeCategory' => array(
@@ -217,6 +222,11 @@ function structured_data_get_schemas($type = NULL) {
           'description' => 'The cuisine of the recipe (for example, French or Ethiopian).',
           'type' => array('Text'),
         ),
+        'cookingMethod' => array(
+          'name' => 'Cooking Method',
+          'description' => 'The method of cooking, such as Frying, Steaming, ...',
+          'type' => array('Text'),
+        ),
         'recipeIngredient' => array(
           'name' => 'Recipe Ingredient',
           'description' => 'A single ingredient used in the recipe, e.g. sugar, flour or garlic.',
@@ -226,6 +236,11 @@ function structured_data_get_schemas($type = NULL) {
           'name' => 'Recipe Instructions',
           'description' => 'A step in making the recipe, in the form of a single item (document, video, etc.) or an ordered list with HowToStep and/or HowToSection items.',
           'type' => array('Text', 'ItemList', 'CreativeWork'),
+        ),
+        'aggregateRating' => array(
+          'name' => 'AggregateRating ',
+          'description' => 'The overall rating, based on a collection of reviews or ratings, of the item.',
+          'type' => array('AggregateRating'),
         ),
         'recipeYield' => array(
           'name' => 'Recipe Yield',
