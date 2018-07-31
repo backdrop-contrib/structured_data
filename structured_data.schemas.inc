@@ -39,6 +39,11 @@ function structured_data_get_schemas($type = NULL) {
           'type' => array('DateTime'),
           'required' => TRUE,
         ),
+        'dateModified' => array(
+          'name' => 'Date modified',
+          'description' => 'The date and time the article was most recently modified',
+          'type' => array('DateTime'),
+        ),
         'author' => array(
           'name' => 'Author',
           'description' => 'The author of the article.',
@@ -49,11 +54,6 @@ function structured_data_get_schemas($type = NULL) {
           'name' => 'Description',
           'description' => 'A short description of the article.',
           'type' => array('Text'),
-        ),
-        'dateModified' => array(
-          'name' => 'Date Modified',
-          'description' => 'The date and time the article was most recently modified',
-          'type' => array('DateTime'),
         ),
       ),
     ),
@@ -84,6 +84,11 @@ function structured_data_get_schemas($type = NULL) {
           'type' => array('DateTime'),
           'required' => TRUE,
         ),
+        'dateModified' => array(
+          'name' => 'Date modified',
+          'description' => 'The date and time the article was most recently modified',
+          'type' => array('DateTime'),
+        ),
         'author' => array(
           'name' => 'Author',
           'description' => 'The author of the article.',
@@ -94,11 +99,6 @@ function structured_data_get_schemas($type = NULL) {
           'name' => 'Description',
           'description' => 'A short description of the article.',
           'type' => array('Text'),
-        ),
-        'dateModified' => array(
-          'name' => 'Date Modified',
-          'description' => 'The date and time the article was most recently modified',
-          'type' => array('DateTime'),
         ),
       ),
     ),
@@ -141,7 +141,7 @@ function structured_data_get_schemas($type = NULL) {
           'type' => array('Text'),
         ),
         'dateModified' => array(
-          'name' => 'Date Modified',
+          'name' => 'Date modified',
           'description' => 'The date and time the article was most recently modified',
           'type' => array('DateTime'),
         ),
@@ -162,6 +162,11 @@ function structured_data_get_schemas($type = NULL) {
           'type' => array('DateTime'),
           'required' => TRUE,
         ),
+        'dateModified' => array(
+          'name' => 'Date modified',
+          'description' => 'The date and time the article was most recently modified',
+          'type' => array('DateTime'),
+        ),
         'image' => array(
           'name' => 'Image',
           'description' => 'Images should be at least 696 pixels wide.',
@@ -176,6 +181,11 @@ function structured_data_get_schemas($type = NULL) {
           'name' => 'Author',
           'description' => 'The author of the recipe.',
           'type' => array('Person'),
+        ),
+        'publisher' => array(
+          'name' => 'Publisher',
+          'description' => 'The publisher of the recipe.',
+          'type' => array('Organization'),
         ),
         'prepTime' => array(
           'name' => 'Prep Time',
@@ -236,20 +246,12 @@ function structured_data_get_schemas($type = NULL) {
           'hidden' => TRUE,
         ),
       ),
-
 /*
-      'name' => 'Mom\'s World Famous Banana Bread',
-      'cookTime' => 'PT1H',
-      'datePublished' => '2009-05-08',
-      'description' => 'This classic banana bread recipe comes from my mom -- the walnuts add a nice texture and flavor to the banana bread.',
-      'image' => 'bananabread.jpg',
       'recipeIngredient' => array(
         '3 or 4 ripe bananas, smashed',
         '1 egg',
         '3/4 cup of sugar',
       ),
-      "prepTime": "PT15M",
-      "recipeInstructions": "Preheat the oven to 350 degrees. Mix in the ingredients in a bowl. Add the flour last. Pour the mixture into a loaf pan and bake for one hour.",
       "suitableForDiet": "http://schema.org/LowFatDiet"
 */
       'VideoObject' => array(

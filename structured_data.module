@@ -44,16 +44,18 @@ function structured_data_config_info() {
 }
 
 /**
- * Implements template_preprocess_html().
+ * Implements template_preprocess_page().
  *
  * Add the necesarry json-ld to the page header.
  */
-function structured_data_preprocess_html(&$vars) {
+function structured_data_preprocess_page(&$varaibles) {
   // Can we assume every website is just a website?
   $structured_data = array(
     '@context' => 'http://schema.org',
     '@type' => 'WebSite',
   );
+
+  $config = config('structured_data.settings');
 
   // Check for Current Node.
   $node = menu_get_object();
@@ -168,21 +170,20 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
     // Get all the fields for this node type.
     $date_source_options = array(
       '' => t('- none -'),
-      'created' => t('Created date'),
-      //'published' => t('Published date'),
-      'changed' => t('Updated date'),
+      'node_created' => t('Created date'),
+      'node_changed' => t('Updated date'),
+    );
+    $text_source_options = array(
+      '' => t('- none -'),
+      'node_title' => t('!title (content title)', array('!title' => check_plain($config->get('title_label')))),
     );
     $person_source_options = array(
       '' => t('- none -'),
-      'name' => t('Account that authored the content'),
+      'node_author' => t('Account that authored the content'),
     );
     $org_source_options = array(
       '' => t('- none -'),
       'site' => t('This website'),
-    );
-    $text_source_options = array(
-      '' => t('- none -'),
-      'title' => t('!title (content title)', array('!title' => check_plain($config->get('title_label')))),
     );
     $image_source_options = array(
       '' => t('- none -'),
@@ -215,31 +216,33 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
     }
 
     // Map the field data to structured data.
-    $source_options = array();
     foreach ($schemas[$schema_type]['properties'] as $property => $property_info) {
-      switch ($property_info['type']) {
-        case 'Text':
-          $source_options = $text_source_options;
-          break;
-        case 'ImageObject':
-          $source_options = $image_source_options;
-          break;
-        case 'DateTime':
-          $source_options = $date_source_options;
-          break;
-        case 'Person':
-          $source_options = $person_source_options;
-          break;
-        case 'Organization':
-          $source_options = $org_source_options;
-          break;
-        case 'Duration':
-          $source_options = $duration_source_options;
-          break;
+      $source_options = array();
+      foreach ($property_info['type'] as $type) {
+        switch ($type) {
+          case 'Text':
+            $source_options += $text_source_options;
+            break;
+          case 'ImageObject':
+            $source_options += $image_source_options;
+            break;
+          case 'DateTime':
+            $source_options += $date_source_options;
+            break;
+          case 'Person':
+            $source_options += $person_source_options;
+            break;
+          case 'Organization':
+            $source_options += $org_source_options;
+            break;
+          case 'Duration':
+            $source_options += $duration_source_options;
+            break;
+        }
+      }
 
-        default:
-          $source_options = array('' => t('- none -'));
-          break;
+      if (empty($source_options)) {
+        $source_options = array('' => t('- none -'));
       }
 
       $form['structured_data']['properties'][$property] = array(
@@ -284,11 +287,11 @@ function structured_data_form_node_type_form_submit($form, &$form_state) {
  */
 function structured_data_get_site_name() {
   // Get the site name.
-  if ($custom_name = $config->get('site_name_custom', FALSE)) {
+  if ($custom_name = config_get('structured_data.settings', 'site_name_custom')) {
     $site_name = $custom_name;
   }
   else {
-    $site_name = variable_get('site_name', '');
+    $site_name = config_get('system.core', 'site_name');
   }
 
   return $site_name;
@@ -300,7 +303,7 @@ function structured_data_get_site_name() {
  * @return (string) Path to a suitable logo file.
  */
 function structured_data_get_site_logo() {
-  if ($custom_logo = config_get('structured_data.settings', 'site_logo_custom', FALSE)) {
+  if ($custom_logo = config_get('structured_data.settings', 'site_logo_custom')) {
     if ($logo = file_load($custom_logo)) {
       $logo_path = file_create_url($logo->uri);
     }
@@ -319,6 +322,7 @@ function structured_data_get_site_logo() {
  * @return (array) Data matching schema.org definition for address.
  */
 function structured_data_get_local_info() {
+  $config = config('structured_data.settings');
   $data = array(
     'address' => array('@type' => 'PostalAddress'),
   );
@@ -346,6 +350,7 @@ function structured_data_get_local_info() {
  * @return (array) Data matching schema.org definition for contactPoint.
  */
 function structured_data_get_corporate_info() {
+  $config = config('structured_data.settings');
   $data = array();
   // Only add a contact point if a phone number is provided.
   if ($phone = $config->get('phone', FALSE)) {
@@ -372,54 +377,81 @@ function structured_data_get_corporate_info() {
  */
 function structured_data_get_node_info($node) {
   $data = array();
+
   // Only add the structured data if the node type is enabled.
-  $enabled_types = array_filter($config->get('node_types', array()));
+  $config = config('structured_data.settings');
+  $enabled_types = $config->get('node_types');
   if (in_array($node->type, $enabled_types)) {
+
     // Get the schema type.
-    $data['@type'] = $config->get('schema_' . $node->type);
+    $structured_data = config_get('node.type.' . $node->type, 'structured_data');
+    $data['@type'] = $structured_data['schema'];
+
     // Load the schema.
     module_load_include('inc', 'structured_data', 'structured_data.schemas');
     $schema = structured_data_get_schemas($data['@type']);
-    $properties = array_merge($schema['required'], $schema['recommended']);
-    foreach ($properties as $property => $property_info) {
-      $field = $config->get('fields_' . $property . '_' . $node->type, FALSE);
-      if (!$field){
-        $field = $config->get('rec_fields_' . $property . '_' . $node->type, FALSE);
-      }
-      if ($field) {
+
+    foreach ($schema['properties'] as $property => $property_info) {
+      if ($field = $structured_data['properties'][$property]) {
+
+        // Special handling for publisher.
         if ($property == 'publisher') {
-          $logo_path = structured_data_get_site_logo();
-          $size = getimagesize($logo_path);
           $data[$property] = array(
             '@type' => 'Organization',
             'name' => structured_data_get_site_name(),
-            'logo' => array(
+          );
+          if ($logo_path = structured_data_get_site_logo()) {
+            $size = getimagesize($logo_path);
+            $data[$property]['logo'] = array(
               '@type' => 'ImageObject',
               'url' => $logo_path,
               'width' => $size[0],
               'height' => $size[1],
-            ),
-          );
-        }
-        elseif (property_exists($node, $field) && !empty($node->{$field}[$node->language])) {
-          // Special case the non-fields.
-          if ($field == 'title') {
-            $data[$property] = $node->{$field};
-          }
-          elseif ($field == 'name') {
-            $data[$property] = array(
-              '@type' => 'Person',
-              'name' => $node->{$field},
             );
           }
-          elseif ($field == 'created' || $field == 'changed') {
-            $data[$property] = format_date($node->{$field}, 'custom', 'Y-m-d\TH:i:s');
+        }
+
+        // Special handling for node property data.
+        elseif (substr($field, 0, 5) == 'node_') {
+          $field = str_replace('node_', '', $field);
+          if (property_exists($node, $field)) {
+            if ($field == 'title') {
+              $fieldname = str_replace('node_', '', $field);
+              $data[$property] = $node->{$field};
+            }
+            elseif ($field == 'created' || $field == 'changed') {
+              $data[$property] = format_date($node->{$field}, 'custom', 'Y-m-d\TH:i:s');
+            }
+            elseif ($field == 'author') {
+              $acount = user_load($node->nid);
+              $data[$property] = array(
+                '@type' => 'Person',
+                'name' => $acount->name,
+              );
+            }
           }
-          // Switch the fields based on type.
-          else {
-            switch ($property_info['type']) {
-              case 'ImageObject':
-                $image_path = file_create_url($node->{$field}[$node->language][0]['uri']);
+        }
+
+        // Handle taxonomy field data.
+        elseif (substr($field, 0, 9) == 'taxonomy_') {
+          // Take only the first taxonomy term since only one value is allowed.
+          if (array_key_exists('target_id', $node->{$field}[$node->langcode][0])) {
+            $tid = $node->{$field}[$node->langcode][0]['target_id'];
+            $term_name = db_query("SELECT name FROM {taxonomy_term_data} WHERE tid = :tid",
+              array(':tid' => $tid))->fetchField();
+            $data[$property] = filter_xss($term_name);
+          }
+        }
+
+        // Handle field module data.
+        elseif (substr($field, 0, 6) == 'field_') {
+          // Get the field type.
+          $field_info = field_info_field($field);
+
+          switch ($field_info['module']) {
+            case 'image':
+              if (array_key_exists('uri', $node->{$field}[$node->langcode][0])) {
+                $image_path = file_create_url($node->{$field}[$node->langcode][0]['uri']);
                 $size = getimagesize($image_path);
                 $data[$property] = array(
                   '@type' => 'ImageObject',
@@ -427,18 +459,37 @@ function structured_data_get_node_info($node) {
                   'width' => $size[0],
                   'height' => $size[1],
                 );
-                break;
+              }
+              break;
 
-              default:
-                // Lets treat them all as text unless they need special treatment.
-                $data[$property] = check_plain(strip_tags($node->{$field}[$node->language][0]['value']));
-                break;
-            }
+            case 'number':
+              if (array_key_exists('value', $node->{$field}[$node->langcode][0])) {
+                $schema_type = reset($property_info['type']);
+                if (in_array($property, array('prepTime', 'cookTime', 'totalTime'))) {
+                  $value = $node->{$field}[$node->langcode][0]['value'];
+                  $data[$property] = 'PT' . $value . 'M';
+                }
+                // @todo Other numbers?
+              }
+              break;
+
+            default: // text module
+              if (array_key_exists('value', $node->{$field}[$node->langcode][0])) {
+                $data[$property] = filter_xss(strip_tags($node->{$field}[$node->langcode][0]['value']));
+              }
+              break;
+          }
+        }
+
+        // Handle body field.
+        elseif ($field == 'body') {
+          if (array_key_exists('value', $node->{$field}[$node->langcode][0])) {
+            $data[$property] = filter_xss(strip_tags($node->{$field}[$node->langcode][0]['value']));
           }
         }
       }
-    }
-  }
+    } // foreach $property_info
+  } // if enabled node type
 
   return $data;
 }
