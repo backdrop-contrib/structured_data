@@ -414,20 +414,20 @@ function structured_data_get_node_info($node) {
         // Special handling for node property data.
         elseif (substr($field, 0, 5) == 'node_') {
           $field = str_replace('node_', '', $field);
-          if (property_exists($node, $field)) {
+          if ($field == 'author') {
+            $acount = user_load($node->uid);
+            $data[$property] = array(
+              '@type' => 'Person',
+              'name' => $acount->name,
+            );
+          }
+          elseif (property_exists($node, $field)) {
             if ($field == 'title') {
               $fieldname = str_replace('node_', '', $field);
               $data[$property] = $node->{$field};
             }
             elseif ($field == 'created' || $field == 'changed') {
               $data[$property] = format_date($node->{$field}, 'custom', 'Y-m-d\TH:i:s');
-            }
-            elseif ($field == 'author') {
-              $acount = user_load($node->nid);
-              $data[$property] = array(
-                '@type' => 'Person',
-                'name' => $acount->name,
-              );
             }
           }
         }
@@ -490,6 +490,8 @@ function structured_data_get_node_info($node) {
       }
     } // foreach $property_info
   } // if enabled node type
+
+  dpm($data);
 
   return $data;
 }
