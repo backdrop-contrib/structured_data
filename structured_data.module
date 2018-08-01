@@ -444,7 +444,7 @@ function structured_data_get_node_info($node) {
           elseif (property_exists($node, $field)) {
             if ($field == 'title') {
               $fieldname = str_replace('node_', '', $field);
-              $data[$property] = $node->{$field};
+              $data[$property] = filter_xss($node->{$field});
             }
             elseif ($field == 'created' || $field == 'changed') {
               $data[$property] = format_date($node->{$field}, 'custom', 'Y-m-d\TH:i:s');
@@ -485,9 +485,14 @@ function structured_data_get_node_info($node) {
 
             case 'youtube':
               if (array_key_exists('input', $node->{$field}[$node->langcode][0])) {
+                $description_field = $structured_data['properties']['description'];
                 $data[$property] = array(
                   '@type' => 'VideoObject',
                   'embedUrl' => $node->{$field}[$node->langcode][0]['input'],
+                  'name' => filter_xss($node->title),
+                  'description' => filter_xss($node->{$description_field}[$node->langcode][0]['value']),
+                  'thumbnailUrl' => 'https://img.youtube.com/vi/' . $node->{$field}[$node->langcode][0]['video_id'] . '/0.jpg',
+                  'uploadDate' => format_date($node->created, 'custom', 'Y-m-d\TH:i:s'),
                 );
               }
               break;
@@ -528,7 +533,7 @@ function structured_data_get_node_info($node) {
     } // foreach $property_info
   } // if enabled node type
 
-  //dpm($data);
+  dpm($data);
 
   return $data;
 }
