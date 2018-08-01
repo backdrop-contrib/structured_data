@@ -263,16 +263,18 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
         $source_options = array('' => t('- none -'));
       }
 
-      $form['structured_data']['properties'][$property] = array(
-        '#type' => 'select',
-        '#title' => t('!property data source', array('!property' => $property_info['name'])),
-        '#description' => t($property_info['description']),
-        '#options' => $source_options,
-        '#default_value' => $structured_data['properties'][$property],
-      );
-      if ($property_info['required']) {
-        $form['structured_data']['properties'][$property]['#required'] = TRUE;
-        $form['structured_data']['properties'][$property]['#weight'] = '-1';
+      if ($property_info['hidden'] !== TRUE) {
+        $form['structured_data']['properties'][$property] = array(
+          '#type' => 'select',
+          '#title' => t('!property data source', array('!property' => $property_info['name'])),
+          '#description' => t($property_info['description']),
+          '#options' => $source_options,
+          '#default_value' => $structured_data['properties'][$property],
+        );
+        if ($property_info['required']) {
+          $form['structured_data']['properties'][$property]['#required'] = TRUE;
+          $form['structured_data']['properties'][$property]['#weight'] = '-1';
+        }
       }
 
       //dpm($property . ' - ' . $property_info['type']);
