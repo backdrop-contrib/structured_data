@@ -149,7 +149,7 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
     $schemas = structured_data_get_schemas();
     $schema_options = array('' => (' - None - '));
     foreach ($schemas as $s_name => $s_type) {
-      if (!isset($s_type['hidden']) || (isset($s_type['hidden']) && $s_type['hidden'] == TRUE)) {
+      if (!isset($s_type['hidden']) || (isset($s_type['hidden']) && $s_type['hidden'] != TRUE)) {
         $schema_options[$s_name] = $s_type['name'];
       }
     }
@@ -197,6 +197,9 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
     $rating_source_options = array(
       '' => t('- none -'),
     );
+    $reference_source_options = array(
+      '' => t('- none -'),
+    );
 
     // Add fields from this node type to available data sources.
     foreach (field_info_instances('node', $type->type) as $field_name => $value) {
@@ -215,12 +218,14 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
       }
       elseif ($field_info['module'] == 'number') {
         $duration_source_options[$field_info['field_name']] = $field_instance['label'];
+        $rating_source_options[$field_info['field_name']] = $field_instance['label'];
       }
       elseif ($field_info['module'] == 'taxonomy') {
         $text_source_options[$field_info['field_name']] = $field_instance['label'];
       }
       elseif ($field_info['module'] == 'reference') {
         $text_source_options[$field_info['field_name']] = $field_instance['label'];
+        $reference_source_options[$field_info['field_name']] = $field_instance['label'];
       }
       elseif ($field_info['module'] == 'fivestar') {
         $rating_source_options[$field_info['field_name']] = $field_instance['label'];
@@ -253,8 +258,14 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
           case 'Duration':
             $source_options += $duration_source_options;
             break;
+          case 'Rating':
+            $source_options += $rating_source_options;
+            break;
           case 'AggregateRating':
             $source_options += $rating_source_options;
+            break;
+          case 'Thing':
+            $source_options += $reference_source_options;
             break;
         }
       }
@@ -276,9 +287,6 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
           $form['structured_data']['properties'][$property]['#weight'] = '-1';
         }
       }
-
-      //dpm($property . ' - ' . $property_info['type']);
-      //dpm($form['structured_data']['properties'][$property]['#options']);
     }
 
     // Add a custom submit handler.
@@ -411,6 +419,25 @@ function structured_data_get_node_info($node) {
     module_load_include('inc', 'structured_data', 'structured_data.schemas');
     $schema = structured_data_get_schemas($data['@type']);
 
+    // Special case certain schema types.
+    switch ($structured_data['schema']) {
+
+      case 'Review':
+        // Always add item reviewed, even if it's this node.
+        $item = str_replace('Review of ', '', $node->title);
+        $data['itemReviewed'] = array(
+          'name' => filter_xss($item),
+          'url' => url('node/' . $node->nid, array('absolute' => TRUE)),
+        );
+        break;
+
+      case 'Article':
+      case 'BlogPosting':
+        // Always add the Node URL for posts.
+        $data['mainEntityOfPage'] = url('node/' . $node->nid, array('absolute' => TRUE));
+        break;
+    }
+
     foreach ($schema['properties'] as $property => $property_info) {
       if ($field = $structured_data['properties'][$property]) {
 
@@ -431,14 +458,30 @@ function structured_data_get_node_info($node) {
           }
         }
 
+        // Special handling for Things / References.
+        elseif ($property == 'itemReviewed') {
+          if (array_key_exists('target_id', $node->{$field}[$node->langcode][0])) {
+            $id = $node->{$field}[$node->langcode][0]['target_id'];
+            // @todo determine entity type here...
+            $entity = entity_load('node', $id);
+            $elang = ($entity->language) ? $entity->language : LANGUAGE_NONE;
+            $data[$property] = array(
+              'name' => filter_xss($entity->title),
+              // @todo find out how to actually map these fields.
+              'description' => filter_xss(strip_tags($entity->body[$elang][0]['value'])),
+              'url' => url('node/' . $entity->nid, array('absolute' => TRUE)),
+            );
+          }
+        }
+
         // Special handling for node property data.
         elseif (substr($field, 0, 5) == 'node_') {
           $field = str_replace('node_', '', $field);
           if ($field == 'author') {
-            $acount = user_load($node->uid);
+            $account = user_load($node->uid);
             $data[$property] = array(
               '@type' => 'Person',
-              'name' => $acount->name,
+              'name' => $account->name,
             );
           }
           elseif (property_exists($node, $field)) {
@@ -504,14 +547,40 @@ function structured_data_get_node_info($node) {
                   $value = $node->{$field}[$node->langcode][0]['value'];
                   $data[$property] = 'PT' . $value . 'M';
                 }
-                // @todo Other numbers?
+                elseif ($property == 'reviewRating') {
+                  $data[$property] = array(
+                    '@type' => 'Rating',
+                    'ratingValue' => $node->{$field}[$node->langcode][0]['value'],
+                    // @todo allow these to be defined.
+                    'bestRating' => 10,
+                    'worstRating' => 0,
+                    'author' => array(
+                      '@type' => 'Person',
+                      'name' => filter_xss($node->name),
+                    ),
+                  );
+                }
               }
               break;
 
             case 'fivestar':
               if (array_key_exists('average', $node->{$field}[$node->langcode][0])) {
-                // Divide b/c votingAPI works in percents, but we're using 5 stars.
-                $data[$property] = $node->{$field}[$node->langcode][0]['average']/20;
+                // Divide: VotingAPI works in percents, but we're using 5 stars.
+                $average = $node->{$field}[$node->langcode][0]['average']/20;
+                $data[$property] = array(
+                  '@type' => 'AggregateRating',
+                  'ratingValue' => $average,
+                  'ratingCount' => $node->{$field}[$node->langcode][0]['count'],
+                );
+              }
+              break;
+
+            case 'reference':
+              if (array_key_exists('target_id', $node->{$field}[$node->langcode][0])) {
+                // Divide: VotingAPI works in percents, but we're using 5 stars.
+                $id = $node->{$field}[$node->langcode][0]['target_id'];
+                $entity = entity_load('node', $id);
+                $data[$property] = filter_xss($entity->title);
               }
               break;
 
@@ -533,7 +602,7 @@ function structured_data_get_node_info($node) {
     } // foreach $property_info
   } // if enabled node type
 
-  dpm($data);
+  //dpm($data);
 
   return $data;
 }

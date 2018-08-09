@@ -12,6 +12,7 @@
  */
 function structured_data_get_schemas($type = NULL) {
   $schemas = array(
+// Article
     'Article' => array(
       'name' => t('Article'),
       'properties' => array(
@@ -27,12 +28,6 @@ function structured_data_get_schemas($type = NULL) {
           'type' => array('ImageObject'),
           'required' => TRUE,
         ),
-        'publisher' => array(
-          'name' => 'Publisher',
-          'description' => 'The publisher of the article.',
-          'type' => array('Organization'),
-          'required' => TRUE,
-        ),
         'datePublished' => array(
           'name' => 'Date published',
           'description' => 'The date and time the article was first published',
@@ -55,8 +50,15 @@ function structured_data_get_schemas($type = NULL) {
           'description' => 'A short description of the article.',
           'type' => array('Text'),
         ),
+        'publisher' => array(
+          'name' => 'Publisher',
+          'description' => 'The publisher of the article.',
+          'type' => array('Organization'),
+          'required' => TRUE,
+        ),
       ),
     ),
+// BlogPosting
     'BlogPosting' => array(
       'name' => t('Blog Posting'),
       'properties' => array(
@@ -72,12 +74,6 @@ function structured_data_get_schemas($type = NULL) {
           'type' => array('ImageObject'),
           'required' => TRUE,
         ),
-        'publisher' => array(
-          'name' => 'Publisher',
-          'description' => 'The publisher of the article.',
-          'type' => array('Organization'),
-          'required' => TRUE,
-        ),
         'datePublished' => array(
           'name' => 'Date published',
           'description' => 'The date and time the article was first published',
@@ -100,8 +96,15 @@ function structured_data_get_schemas($type = NULL) {
           'description' => 'A short description of the article.',
           'type' => array('Text'),
         ),
+        'publisher' => array(
+          'name' => 'Publisher',
+          'description' => 'The publisher of the article.',
+          'type' => array('Organization'),
+          'required' => TRUE,
+        ),
       ),
     ),
+// NewsArticle
     'NewsArticle' => array(
       'name' => t('News Article'),
       'properties' => array(
@@ -117,12 +120,6 @@ function structured_data_get_schemas($type = NULL) {
           'type' => array('ImageObject'),
           'required' => TRUE,
         ),
-        'publisher' => array(
-          'name' => 'Publisher',
-          'description' => 'The publisher of the article.',
-          'type' => array('Organization'),
-          'required' => TRUE,
-        ),
         'datePublished' => array(
           'name' => 'Date published',
           'description' => 'The date and time the article was first published',
@@ -145,8 +142,15 @@ function structured_data_get_schemas($type = NULL) {
           'description' => 'The date and time the article was most recently modified',
           'type' => array('DateTime'),
         ),
+        'publisher' => array(
+          'name' => 'Publisher',
+          'description' => 'The publisher of the article.',
+          'type' => array('Organization'),
+          'required' => TRUE,
+        ),
       ),
     ),
+// Recipe
     'Recipe' => array(
       'name' => t('Recipe'),
       'properties' => array(
@@ -186,11 +190,6 @@ function structured_data_get_schemas($type = NULL) {
           'name' => 'Author',
           'description' => 'The author of the recipe.',
           'type' => array('Person'),
-        ),
-        'publisher' => array(
-          'name' => 'Publisher',
-          'description' => 'The publisher of the recipe.',
-          'type' => array('Organization'),
         ),
         'prepTime' => array(
           'name' => 'Prep Time',
@@ -238,7 +237,7 @@ function structured_data_get_schemas($type = NULL) {
           'type' => array('Text', 'ItemList', 'CreativeWork'),
         ),
         'aggregateRating' => array(
-          'name' => 'AggregateRating ',
+          'name' => 'AggregateRating',
           'description' => 'The overall rating, based on a collection of reviews or ratings, of the item.',
           'type' => array('AggregateRating'),
         ),
@@ -260,50 +259,129 @@ function structured_data_get_schemas($type = NULL) {
           'type' => array('NutritionInformation'),
           'hidden' => TRUE,
         ),
-      ),
-/*
-      'recipeIngredient' => array(
-        '3 or 4 ripe bananas, smashed',
-        '1 egg',
-        '3/4 cup of sugar',
-      ),
-      "suitableForDiet": "http://schema.org/LowFatDiet"
-*/
-      'VideoObject' => array(
-        'name' => t('Video'),
-        'properties' => array(
-          'name' => array(
-            'required' => TRUE,
-          ),
-          'description' => array(
-            'name' => 'Description',
-            'description' => 'A description of the video.',
-            'type' => array('Text'),
-          ),
-          'thumbnailUrl' => array(
-            'name' => 'Thumbnail',
-            'description' => 'Thumbnail image for an image or video.',
-            'type' => array('ImageObject'),
-          ),
-          'publisher' => array(
-            'name' => 'Publisher',
-            'description' => 'The publisher of the video.',
-            'type' => array('Organization'),
-          ),
+        'publisher' => array(
+          'name' => 'Publisher',
+          'description' => 'The publisher of the recipe.',
+          'type' => array('Organization'),
         ),
       ),
-      // @todo below here
-      'Organization' => array(
-        'name' => t('Organization'),
-        'properties' => array(),
-        'hidden' => TRUE,
-      ),
-      'Person' => array(
-        'name' => t('Person'),
-        'properties' => array(),
-        'hidden' => TRUE,
+    ),
+// Review
+    'Review' => array(
+      'name' => t('Review'),
+      'properties' => array(
+        'name' => array(
+          'name' => 'Name',
+          'description' => 'The name of the item being reviewed.',
+          'type' => array('Text'),
+          'required' => TRUE,
+        ),
+        'itemReviewed' => array(
+          'name' => 'itemReviewed',
+          'type' => array('Thing'),
+          'description' => 'The item that is being reviewed/rated.',
+        ),
+        'description' => array(
+          'name' => 'Description',
+          'description' => 'A description of the item being reviewed.',
+          'type' => array('Text'),
+        ),
+        'reviewBody' => array(
+          'name' => 'Review',
+          'description' => 'The actual body of the review.',
+          'type' => array('Text'),
+          'required' => TRUE,
+        ),
+        'reviewRating' => array(
+          'name' => 'Review Rating',
+          'description' => 'The rating given in this review.',
+          'type' => array('Rating'),
+        ),
+        'image' => array(
+          'name' => 'Image',
+          'description' => 'Images should be at least 696 pixels wide.',
+          'type' => array('ImageObject'),
+          'required' => TRUE,
+        ),
+        'video' => array(
+          'name' => 'Video',
+          'description' => 'An embedded video object or a video file.',
+          'type' => array('VideoObject'),
+        ),
+        'author' => array(
+          'name' => 'Author',
+          'description' => 'The creator/author of this review.',
+          'type' => array('Person', 'Organization'),
+          'required' => TRUE,
+        ),
+        'datePublished' => array(
+          'name' => 'Date published',
+          'description' => 'The date and time the article was first published',
+          'type' => array('DateTime'),
+          'required' => TRUE,
+        ),
+        'dateModified' => array(
+          'name' => 'Date modified',
+          'description' => 'The date and time the article was most recently modified',
+          'type' => array('DateTime'),
+        ),
+        'publisher' => array(
+          'name' => 'Publisher',
+          'description' => 'The publisher of the video.',
+          'type' => array('Organization'),
+        ),
       ),
     ),
+// VideoObject @todo
+    'VideoObject' => array(
+      'name' => t('Video'),
+      'properties' => array(
+        'name' => array(
+          'required' => TRUE,
+        ),
+        'description' => array(
+          'name' => 'Description',
+          'description' => 'A description of the video.',
+          'type' => array('Text'),
+        ),
+        'thumbnailUrl' => array(
+          'name' => 'Thumbnail',
+          'description' => 'Thumbnail image for an image or video.',
+          'type' => array('ImageObject'),
+        ),
+        'publisher' => array(
+          'name' => 'Publisher',
+          'description' => 'The publisher of the video.',
+          'type' => array('Organization'),
+        ),
+      ),
+    ),
+// Product
+    'Product' => array(
+      'name' => t('Product'),
+      'properties' => array(
+        // TODO
+        'brand' => array(
+          'name' => 'Brand',
+          'description' => 'The brand(s) associated with a product or service, or the brand(s) maintained by an organization or business person',
+          'type' => array('Brand', 'Organization'),
+        ),
+      ),
+      'hidden' => TRUE,
+    ),
+// Organization @todo
+    'Organization' => array(
+      'name' => t('Organization'),
+      'properties' => array(),
+      'hidden' => TRUE,
+    ),
+// Person @todo
+    'Person' => array(
+      'name' => t('Person'),
+      'properties' => array(),
+      'hidden' => TRUE,
+    ),
+// @todo
   );
 
   // Allow schemas to be altered.
