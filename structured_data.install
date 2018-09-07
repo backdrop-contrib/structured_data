@@ -19,39 +19,39 @@ function structured_data_update_1000() {
 
   // Site variables.
   $site_name = config_get('system.core', 'site_name');
-  $config->set(update_variable_get('structured_data_site_name_default', $site_name));
+  $config->set('site_name_default', update_variable_get('structured_data_site_name_default', $site_name));
   variable_del('structured_data_site_name_default');
-  $config->set(update_variable_get('structured_data_site_name_custom', ''));
+  $config->set('site_name_custom', update_variable_get('structured_data_site_name_custom', ''));
   variable_del('structured_data_site_name_custom');
-  $config->set(update_variable_get('structured_data_site_name_alternative', ''));
+  $config->set('site_name_alternative', update_variable_get('structured_data_site_name_alternative', ''));
   variable_del('structured_data_site_name_alternative');
-  $config->set(update_variable_get('structured_data_site_logo_default', ''));
+  $config->set('site_logo_default', update_variable_get('structured_data_site_logo_default', ''));
   variable_del('structured_data_site_logo_default');
-  $config->set(update_variable_get('structured_data_site_logo_custom', ''));
+  $config->set('site_logo_custom', update_variable_get('structured_data_site_logo_custom', ''));
   variable_del('structured_data_site_logo_custom');
 
   // Local Business variables.
-  $config->set(update_variable_get('structured_data_business_type', ''));
+  $config->set('business_type', update_variable_get('structured_data_business_type', ''));
   variable_del('structured_data_business_type');
-  $config->set(update_variable_get('structured_data_address', ''));
+  $config->set('address', update_variable_get('structured_data_address', ''));
   variable_del('structured_data_address');
-  $config->set(update_variable_get('structured_data_city', ''));
+  $config->set('city', update_variable_get('structured_data_city', ''));
   variable_del('structured_data_city');
-  $config->set(update_variable_get('structured_data_state', ''));
+  $config->set('state', update_variable_get('structured_data_state', ''));
   variable_del('structured_data_state');
-  $config->set(update_variable_get('structured_data_zip', ''));
+  $config->set('zip', update_variable_get('structured_data_zip', ''));
   variable_del('structured_data_zip');
 
   // Corporate contact variables.
-  $config->set(update_variable_get('structured_data_phone', ''));
+  $config->set('phone', update_variable_get('structured_data_phone', ''));
   variable_del('structured_data_phone');
-  $config->set(update_variable_get('structured_data_phone_type', ''));
+  $config->set('phone_type', update_variable_get('structured_data_phone_type', ''));
   variable_del('structured_data_phone_type');
-  $config->set(update_variable_get('structured_data_phone_options', ''));
+  $config->set('phone_options', update_variable_get('structured_data_phone_options', ''));
   variable_del('structured_data_phone_options');
 
   // Node type variables.
-  $config->set(update_variable_get('structured_data_node_types', array()));
+  $config->set('node_types', update_variable_get('structured_data_node_types', array()));
   variable_del('structured_data_node_types');
 
   // Save the global config.
