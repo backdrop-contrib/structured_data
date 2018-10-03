@@ -338,14 +338,19 @@ function structured_data_get_site_name() {
  * @return (string) Path to a suitable logo file.
  */
 function structured_data_get_site_logo() {
-  $logo_info = array();
+  $logo_info = array(
+    'path' => '',
+    'width' => NULL,
+    'height' => NULL,
+  );
+
   $custom_logo = config_get('structured_data.settings', 'site_logo_custom');
   if (!empty($custom_logo) && $logo_file = file_load($custom_logo)) {
     $logo_info['path'] = file_create_url($logo_file->uri);
 
     $logo_size = getimagesize($logo_info['path']);
-    $logo_info['width'] = $logo_size['width'];
-    $logo_info['height'] = $logo_size['height'];
+    $logo_info['width'] = $logo_size[0];
+    $logo_info['height'] = $logo_size[1];
   }
   elseif (config_get('system.core', 'site_logo_theme')) {
     $default_theme = config_get('system.core', 'theme_default');
@@ -363,8 +368,8 @@ function structured_data_get_site_logo() {
     }
 
     $logo_size = getimagesize($logo_info['path']);
-    $logo_info['width'] = $logo_size['width'];
-    $logo_info['height'] = $logo_size['height'];
+    $logo_info['width'] = $logo_size[0];
+    $logo_info['height'] = $logo_size[1];
   }
   else {
     $logo_info = backdrop_get_logo_info();

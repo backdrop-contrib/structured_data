@@ -53,7 +53,7 @@ function structured_data_settings_form() {
   $form['marketing']['site_logo_custom'] = array(
     '#type' => 'managed_file',
     '#title' => t('Alternate Logo'),
-    '#description' => t('<strong>Logos should be exactly 60px tall with a width of 600px or less</strong>. Allowed extensions: jpg, jpeg, png, gif.'),
+    '#description' => t('Allowed extensions: jpg, jpeg, png, gif.'),
     '#upload_location' => 'public://structured_data/',
     '#default_value' => $config->get('site_logo_custom', ''),
     '#upload_location' => 'public://',
@@ -68,7 +68,9 @@ function structured_data_settings_form() {
   }
   $form['marketing']['site_logo_current'] = array(
     '#type' =>'item',
+    '#title' => t('Current Logo'),
     '#markup' => $default,
+    '#description' => t('Logos should be exactly 60px tall with a width of 600px or less. '),
   );
 
   // Node Type filter.
@@ -84,13 +86,24 @@ function structured_data_settings_form() {
 
   $type_rows = array();
   $type_defaults = array();
+  $allowed_types = config_get('structured_data.settings', 'node_types');
+  // @todo remove pathless nodes.
   foreach (node_type_get_types() as $type) {
-    $type_defaults[$type->type] = $type->type;
-    $type_rows[$type->type] = array(
-      'type' => t($type->name),
-      'content' => structured_data_get_node_type_config($type->type),
-      'link' => l(t('Configure'), 'admin/structure/types/manage/' . $type->type . '/configure', $link_options),
-    );
+    if ($allowed_types[$type->type]) {
+      $type_defaults[$type->type] = $type->type;
+      $type_rows[$type->type] = array(
+        'type' => t($type->name),
+        'content' => structured_data_get_node_type_config($type->type),
+        'link' => l(t('Configure'), 'admin/structure/types/manage/' . $type->type . '/configure', $link_options),
+      );
+    }
+    else {
+      $type_rows[$type->type] = array(
+        'type' => t($type->name),
+        'content' => NULL,
+        'link' => NULL,
+      );
+    }
   }
 
   // Set the table select.
@@ -99,7 +112,7 @@ function structured_data_settings_form() {
     '#type' => 'tableselect',
     '#header' => array(
       'type' => t('Content Type'),
-      'content' => t('Current rich snippet settings'),
+      'content' => t('Rich snippet settings'),
       'link' => t('Configure'),
     ),
     '#options' => $type_rows,
