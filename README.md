@@ -11,7 +11,7 @@ Installation
   https://backdropcms.org/guide/modules
 
 - Visit the configuration page under Administration > Configuration >
-  Structured data (admin/config/structured-data) and enter the required
+  Structured data (admin/config/metadata/structured-data) and enter the required
   information.
 
 - Visit the configuration page for each type of content you would like to

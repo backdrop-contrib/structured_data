@@ -140,7 +140,7 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
   if (!in_array($type->type, $node_types)) {
     $disabled = t('disabled');
     if (user_access('configure structured data')) {
-      $disabled = l(t('Disabled'), 'admin/config/structured-data');
+      $disabled = l(t('Disabled'), 'admin/config/metadata/structured-data');
     }
     $form['structured_data']['schema'] = array(
       '#type' => 'markup',

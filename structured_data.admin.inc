@@ -80,7 +80,7 @@ function structured_data_settings_form() {
     '#collapsed' => FALSE,
   );
 
-  $link_options = array('query' => array('destination' => 'admin/config/structured-data'));
+  $link_options = array('query' => array('destination' => 'admin/config/metadata/structured-data'));
 
   $type_rows = array();
   $type_defaults = array();
