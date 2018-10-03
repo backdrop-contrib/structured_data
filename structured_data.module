@@ -20,9 +20,9 @@ function structured_data_permission() {
  * Implements hook_menu().
  */
 function structured_data_menu() {
-  $items['admin/config/structured-data'] = array(
+  $items['admin/config/metadata/structured-data'] = array(
     'title' => 'Structured data',
-    'description' => 'The main configuration page for Structured Data',
+    'description' => 'Settings for Structured Data',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('structured_data_settings_form'),
     'access arguments' => array('configure structured data'),

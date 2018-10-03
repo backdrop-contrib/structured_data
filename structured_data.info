@@ -3,4 +3,4 @@ name = Structured data markup
 description = Annotate your content to generate Rich Search Snippets.
 backdrop = 1.x
 
-configure = admin/config/structured-data
+configure = admin/config/metadata/structured-data
