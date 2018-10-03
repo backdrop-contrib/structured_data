@@ -30,18 +30,7 @@ function structured_data_settings_form() {
     '#default_value' => $config->get('site_name_alternative', ''),
   );
 
-  $logo_path = structured_data_get_site_logo();
-  if (!empty($logo_path)) {
-    $logo_info = getimagesize($logo_path);
-    $data['width'] = $logo_info[0];
-    $data['height'] = $logo_info[1];
-  }
-  else {
-    $logo_info = backdrop_get_logo_info();
-    $data['width'] = $logo_info['width'];
-    $data['height'] = $logo_info['height'];
-  }
-
+  $logo_info = structured_data_get_site_logo();
   if ($logo_info['width'] > 600 || $logo_info['height'] > 60) {
     $problem_width = 'a width greater than 600px';
     $problem_height = 'a height greater than 60px';

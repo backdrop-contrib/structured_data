@@ -87,7 +87,14 @@ function structured_data_preprocess_page(&$varaibles) {
     }
 
     // Add site logo.
-    $structured_data['logo'] = structured_data_get_site_logo();
+    if ($logo_info = structured_data_get_site_logo()) {
+      $structured_data['logo'] = array(
+        '@type' => 'ImageObject',
+        'url' => $logo_info['path'],
+        'width' => $logo_info['width'],
+        'height' => $logo_info['height'],
+      );
+    }
 
     // Add local business info.
     $local_data = structured_data_get_local_info();
@@ -331,17 +338,39 @@ function structured_data_get_site_name() {
  * @return (string) Path to a suitable logo file.
  */
 function structured_data_get_site_logo() {
-  if ($custom_logo = config_get('structured_data.settings', 'site_logo_custom')) {
-    if ($logo = file_load($custom_logo)) {
-      $logo_path = file_create_url($logo->uri);
+  $logo_info = array();
+  $custom_logo = config_get('structured_data.settings', 'site_logo_custom');
+  if (!empty($custom_logo) && $logo_file = file_load($custom_logo)) {
+    $logo_info['path'] = file_create_url($logo_file->uri);
+
+    $logo_size = getimagesize($logo_info['path']);
+    $logo_info['width'] = $logo_size['width'];
+    $logo_info['height'] = $logo_size['height'];
+  }
+  elseif (config_get('system.core', 'site_logo_theme')) {
+    $default_theme = config_get('system.core', 'theme_default');
+    $all_theme_data = list_themes();
+    $theme_object = $all_theme_data[$default_theme];
+    if (property_exists($theme_object, 'logo')) {
+      $logo_path = $theme_object->logo;
     }
+    else {
+      $logo_path = dirname($theme_object->filename) . '/logo.png';
+    }
+
+    if (file_exists($logo_path)) {
+      $logo_info['path'] = $logo_path;
+    }
+
+    $logo_size = getimagesize($logo_info['path']);
+    $logo_info['width'] = $logo_size['width'];
+    $logo_info['height'] = $logo_size['height'];
   }
   else {
-    $default_theme = config_get('system.core', 'theme_default');
-    $logo_path = theme_get_setting('logo', $default_theme);
+    $logo_info = backdrop_get_logo_info();
   }
 
-  return $logo_path;
+  return $logo_info;
 }
 
 /**
@@ -447,13 +476,12 @@ function structured_data_get_node_info($node) {
             '@type' => 'Organization',
             'name' => structured_data_get_site_name(),
           );
-          if ($logo_path = structured_data_get_site_logo()) {
-            $size = getimagesize($logo_path);
+          if ($logo_info = structured_data_get_site_logo()) {
             $data[$property]['logo'] = array(
               '@type' => 'ImageObject',
-              'url' => $logo_path,
-              'width' => $size[0],
-              'height' => $size[1],
+              'url' => $logo_info['path'],
+              'width' => $logo_info['width'],
+              'height' => $logo_info['height'],
             );
           }
         }
