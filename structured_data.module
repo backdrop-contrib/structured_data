@@ -443,7 +443,8 @@ function structured_data_get_node_info($node) {
   // Only add the structured data if the node type is enabled.
   $config = config('structured_data.settings');
   $enabled_types = $config->get('node_types');
-  if (in_array($node->type, $enabled_types)) {
+  if (is_object($node) && in_array($node->type, $enabled_types)) {
+    $lang = $node->langcode; // Nice shorthand.
 
     // Get the schema type.
     $structured_data = config_get('node.type.' . $node->type, 'structured_data');
@@ -495,8 +496,8 @@ function structured_data_get_node_info($node) {
 
           // Special handling for Things / References.
           elseif ($property == 'itemReviewed') {
-            if (array_key_exists('target_id', $node->{$field}[$node->langcode][0])) {
-              $id = $node->{$field}[$node->langcode][0]['target_id'];
+            if (array_key_exists('target_id', $node->{$field}[$lang][0])) {
+              $id = $node->{$field}[$lang][0]['target_id'];
               // @todo determine entity type here...
               $entity = entity_load('node', $id);
               $elang = ($entity->language) ? $entity->language : LANGUAGE_NONE;
@@ -533,8 +534,8 @@ function structured_data_get_node_info($node) {
           // Handle taxonomy field data.
           elseif (substr($field, 0, 9) == 'taxonomy_') {
             // Take only the first taxonomy term since only one value is allowed.
-            if (array_key_exists('target_id', $node->{$field}[$node->langcode][0])) {
-              $tid = $node->{$field}[$node->langcode][0]['target_id'];
+            if (array_key_exists('target_id', $node->{$field}[$lang][0])) {
+              $tid = $node->{$field}[$lang][0]['target_id'];
               $term_name = db_query("SELECT name FROM {taxonomy_term_data} WHERE tid = :tid",
                 array(':tid' => $tid))->fetchField();
               $data[$property] = filter_xss($term_name);
@@ -549,8 +550,9 @@ function structured_data_get_node_info($node) {
             // @todo make these into hooks so any module can implement?
             switch ($field_info['module']) {
               case 'image':
-                if (array_key_exists('uri', $node->{$field}[$node->langcode][0])) {
-                  $image_path = file_create_url($node->{$field}[$node->langcode][0]['uri']);
+                if (property_exists($node, $field) && !empty($node->{$field})
+                    && array_key_exists('uri', $node->{$field}[$lang][0])) {
+                  $image_path = file_create_url($node->{$field}[$lang][0]['uri']);
                   $size = getimagesize($image_path);
                   $data[$property] = array(
                     '@type' => 'ImageObject',
@@ -562,30 +564,32 @@ function structured_data_get_node_info($node) {
                 break;
 
               case 'youtube':
-                if (array_key_exists('input', $node->{$field}[$node->langcode][0])) {
+                if (property_exists($node, $field) && !empty($node->{$field})
+                  && array_key_exists('input', $node->{$field}[$lang][0])) {
                   $description_field = $structured_data['properties']['description'];
                   $data[$property] = array(
                     '@type' => 'VideoObject',
-                    'embedUrl' => $node->{$field}[$node->langcode][0]['input'],
+                    'embedUrl' => $node->{$field}[$lang][0]['input'],
                     'name' => filter_xss($node->title),
-                    'description' => filter_xss($node->{$description_field}[$node->langcode][0]['value']),
-                    'thumbnailUrl' => 'https://img.youtube.com/vi/' . $node->{$field}[$node->langcode][0]['video_id'] . '/0.jpg',
+                    'description' => filter_xss($node->{$description_field}[$lang][0]['value']),
+                    'thumbnailUrl' => 'https://img.youtube.com/vi/' . $node->{$field}[$lang][0]['video_id'] . '/0.jpg',
                     'uploadDate' => format_date($node->created, 'custom', 'Y-m-d\TH:i:s'),
                   );
                 }
                 break;
 
               case 'number':
-                if (array_key_exists('value', $node->{$field}[$node->langcode][0])) {
+                if (property_exists($node, $field) && !empty($node->{$field})
+                  && array_key_exists('value', $node->{$field}[$lang][0])) {
                   $schema_type = reset($property_info['type']);
                   if (in_array($property, array('prepTime', 'cookTime', 'totalTime'))) {
-                    $value = $node->{$field}[$node->langcode][0]['value'];
+                    $value = $node->{$field}[$lang][0]['value'];
                     $data[$property] = 'PT' . $value . 'M';
                   }
                   elseif ($property == 'reviewRating') {
                     $data[$property] = array(
                       '@type' => 'Rating',
-                      'ratingValue' => $node->{$field}[$node->langcode][0]['value'],
+                      'ratingValue' => $node->{$field}[$lang][0]['value'],
                       // @todo allow these to be defined.
                       'bestRating' => 10,
                       'worstRating' => 0,
@@ -599,29 +603,32 @@ function structured_data_get_node_info($node) {
                 break;
 
               case 'fivestar':
-                if (array_key_exists('average', $node->{$field}[$node->langcode][0])) {
+                if (property_exists($node, $field) && !empty($node->{$field})
+                  && array_key_exists('average', $node->{$field}[$lang][0])) {
                   // Divide: VotingAPI works in percents, but we're using 5 stars.
-                  $average = $node->{$field}[$node->langcode][0]['average']/20;
+                  $average = $node->{$field}[$lang][0]['average']/20;
                   $data[$property] = array(
                     '@type' => 'AggregateRating',
                     'ratingValue' => $average,
-                    'ratingCount' => $node->{$field}[$node->langcode][0]['count'],
+                    'ratingCount' => $node->{$field}[$lang][0]['count'],
                   );
                 }
                 break;
 
               case 'reference':
-                if (array_key_exists('target_id', $node->{$field}[$node->langcode][0])) {
+                if (property_exists($node, $field) && !empty($node->{$field})
+                  && array_key_exists('target_id', $node->{$field}[$lang][0])) {
                   // Divide: VotingAPI works in percents, but we're using 5 stars.
-                  $id = $node->{$field}[$node->langcode][0]['target_id'];
+                  $id = $node->{$field}[$lang][0]['target_id'];
                   $entity = entity_load('node', $id);
                   $data[$property] = filter_xss($entity->title);
                 }
                 break;
 
               default: // text module
-                if (array_key_exists('value', $node->{$field}[$node->langcode][0])) {
-                  $data[$property] = filter_xss(strip_tags($node->{$field}[$node->langcode][0]['value']));
+                if (property_exists($node, $field) && !empty($node->{$field})
+                  && array_key_exists('value', $node->{$field}[$lang][0])) {
+                  $data[$property] = filter_xss(strip_tags($node->{$field}[$lang][0]['value']));
                 }
                 break;
             }
@@ -629,8 +636,9 @@ function structured_data_get_node_info($node) {
 
           // Handle body field.
           elseif ($field == 'body') {
-            if (array_key_exists('value', $node->{$field}[$node->langcode][0])) {
-              $data[$property] = filter_xss(strip_tags($node->{$field}[$node->langcode][0]['value']));
+            if (property_exists($node, $field) && !empty($node->{$field})
+                && array_key_exists('value', $node->{$field}[$lang][0])) {
+              $data[$property] = filter_xss(strip_tags($node->{$field}[$lang][0]['value']));
             }
           }
         }
