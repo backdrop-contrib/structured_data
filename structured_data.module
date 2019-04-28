@@ -195,6 +195,9 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
     $image_source_options = array(
       '' => t('- none -'),
     );
+    $url_source_options = array(
+      '' => t('- none -'),
+    );
     $video_source_options = array(
       '' => t('- none -'),
     );
@@ -222,6 +225,7 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
       }
       elseif ($field_info['type'] == 'youtube') {
         $video_source_options[$field_info['field_name']] = $field_instance['label'];
+        $url_source_options[$field_info['field_name']] = $field_instance['label'];
       }
       elseif ($field_info['module'] == 'number') {
         $duration_source_options[$field_info['field_name']] = $field_instance['label'];
@@ -249,6 +253,10 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
             break;
           case 'ImageObject':
             $source_options += $image_source_options;
+            $source_options += $video_source_options;
+            break;
+          case 'URL':
+            $source_options += $url_source_options;
             break;
           case 'VideoObject':
             $source_options += $video_source_options;
@@ -261,6 +269,7 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
             break;
           case 'Organization':
             $source_options += $org_source_options;
+            $source_options += $video_source_options;
             break;
           case 'Duration':
             $source_options += $duration_source_options;
@@ -282,6 +291,9 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
       }
 
       if ($property_info['hidden'] !== TRUE) {
+        if ($schema_type == 'VideoObject') {
+          //dpm($property_info);
+        }
         $form['structured_data']['properties'][$property] = array(
           '#type' => 'select',
           '#title' => t('!property data source', array('!property' => $property_info['name'])),
@@ -478,10 +490,11 @@ function structured_data_get_node_info($node) {
         && is_array($schema['properties']) && !empty($schema['properties'])) {
 
       foreach ($schema['properties'] as $property => $property_info) {
+        $property = trim($property);
         if ($field = $structured_data['properties'][$property]) {
 
           // Special handling for publisher.
-          if ($property == 'publisher') {
+          if ($property == 'publisher' && (substr($field, 0, 6) != 'field_')) {
             $data[$property] = array(
               '@type' => 'Organization',
               'name' => structured_data_get_site_name(),
@@ -566,17 +579,38 @@ function structured_data_get_node_info($node) {
                 break;
 
               case 'youtube':
-                if (property_exists($node, $field) && !empty($node->{$field})
-                  && array_key_exists('input', $node->{$field}[$lang][0])) {
-                  $description_field = $structured_data['properties']['description'];
+                $publisher = t('YouTube');
+
+                if ($property == 'publisher') {
                   $data[$property] = array(
-                    '@type' => 'VideoObject',
-                    'embedUrl' => $node->{$field}[$lang][0]['input'],
-                    'name' => filter_xss($node->title),
-                    'description' => filter_xss($node->{$description_field}[$lang][0]['value']),
-                    'thumbnailUrl' => 'https://img.youtube.com/vi/' . $node->{$field}[$lang][0]['video_id'] . '/0.jpg',
-                    'uploadDate' => format_date($node->created, 'custom', 'Y-m-d\TH:i:s'),
+                    '@type' => 'Organization',
+                    'name' => $publisher,
                   );
+                }
+                elseif (property_exists($node, $field) && !empty($node->{$field})
+                  && array_key_exists('input', $node->{$field}[$lang][0])) {
+
+                  $youtube_thumbnail_url = 'https://img.youtube.com/vi/' . $node->{$field}[$lang][0]['video_id'] . '/0.jpg';
+                  $youtube_embed_url = $node->{$field}[$lang][0]['input'];
+
+                  if ($property == 'thumbnailUrl') {
+                    $data[$property] = $youtube_thumbnail_url;
+                  }
+                  elseif ($property == 'embedUrl') {
+                    $data[$property] = $youtube_embed_url;
+                  }
+                  else {
+                    $description_field = $structured_data['properties']['description'];
+                    $data[$property] = array(
+                      '@type' => 'VideoObject',
+                      'embedUrl' => $youtube_embed_url,
+                      'name' => filter_xss($node->title),
+                      'description' => filter_xss($node->{$description_field}[$lang][0]['value']),
+                      'thumbnailUrl' => $youtube_thumbnail_url,
+                      'uploadDate' => format_date($node->created, 'custom', 'Y-m-d\TH:i:s'),
+                      'publisher' => $publisher,
+                    );
+                  }
                 }
                 break;
 

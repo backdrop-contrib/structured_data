@@ -332,12 +332,20 @@ function structured_data_get_schemas($type = NULL) {
         ),
       ),
     ),
-// VideoObject @todo
+// Video
     'VideoObject' => array(
       'name' => t('Video'),
       'properties' => array(
         'name' => array(
+          'name' => 'Name',
+          'description' => 'The name of the video.',
+          'type' => array('Text'),
           'required' => TRUE,
+        ),
+        'embedUrl' => array(
+          'name' => 'Video embed URL',
+          'description' => 'URL for the video file.',
+          'type' => array('URL'),
         ),
         'description' => array(
           'name' => 'Description',
