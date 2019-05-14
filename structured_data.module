@@ -485,9 +485,9 @@ function structured_data_get_node_info($node) {
         break;
     }
 
-    if (is_array($structured_data['properties'])
-        && array_key_exists('properties', $schema)
-        && is_array($schema['properties']) && !empty($schema['properties'])) {
+    if (isset($structured_data['properties']) && is_array($structured_data['properties'])
+        && isset($schema['properties']) && is_array($schema['properties'])
+        && !empty($schema['properties'])) {
 
       foreach ($schema['properties'] as $property => $property_info) {
         $property = trim($property);
