@@ -244,66 +244,68 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
     }
 
     // Map the field data to structured data.
-    foreach ($schemas[$schema_type]['properties'] as $property => $property_info) {
-      $source_options = array();
-      foreach ($property_info['type'] as $type) {
-        switch ($type) {
-          case 'Text':
-            $source_options += $text_source_options;
-            break;
-          case 'ImageObject':
-            $source_options += $image_source_options;
-            $source_options += $video_source_options;
-            break;
-          case 'URL':
-            $source_options += $url_source_options;
-            break;
-          case 'VideoObject':
-            $source_options += $video_source_options;
-            break;
-          case 'DateTime':
-            $source_options += $date_source_options;
-            break;
-          case 'Person':
-            $source_options += $person_source_options;
-            break;
-          case 'Organization':
-            $source_options += $org_source_options;
-            $source_options += $video_source_options;
-            break;
-          case 'Duration':
-            $source_options += $duration_source_options;
-            break;
-          case 'Rating':
-            $source_options += $rating_source_options;
-            break;
-          case 'AggregateRating':
-            $source_options += $rating_source_options;
-            break;
-          case 'Thing':
-            $source_options += $reference_source_options;
-            break;
+    if (is_array($schemas[$schema_type]['properties'])) {
+      foreach ($schemas[$schema_type]['properties'] as $property => $property_info) {
+        $source_options = array();
+        foreach ($property_info['type'] as $type) {
+          switch ($type) {
+            case 'Text':
+              $source_options += $text_source_options;
+              break;
+            case 'ImageObject':
+              $source_options += $image_source_options;
+              $source_options += $video_source_options;
+              break;
+            case 'URL':
+              $source_options += $url_source_options;
+              break;
+            case 'VideoObject':
+              $source_options += $video_source_options;
+              break;
+            case 'DateTime':
+              $source_options += $date_source_options;
+              break;
+            case 'Person':
+              $source_options += $person_source_options;
+              break;
+            case 'Organization':
+              $source_options += $org_source_options;
+              $source_options += $video_source_options;
+              break;
+            case 'Duration':
+              $source_options += $duration_source_options;
+              break;
+            case 'Rating':
+              $source_options += $rating_source_options;
+              break;
+            case 'AggregateRating':
+              $source_options += $rating_source_options;
+              break;
+            case 'Thing':
+              $source_options += $reference_source_options;
+              break;
+          }
         }
-      }
 
-      if (empty($source_options)) {
-        $source_options = array('' => t('- none -'));
-      }
-
-      if ($property_info['hidden'] !== TRUE) {
-        if ($schema_type == 'VideoObject') {
-          //dpm($property_info);
+        if (empty($source_options)) {
+          $source_options = array('' => t('- none -'));
         }
-        $form['structured_data']['properties'][$property] = array(
-          '#type' => 'select',
-          '#title' => t('!property data source', array('!property' => $property_info['name'])),
-          '#description' => t($property_info['description']),
-          '#options' => $source_options,
-          '#default_value' => $structured_data['properties'][$property],
-        );
-        if ($property_info['required']) {
-          $form['structured_data']['properties'][$property]['#required'] = TRUE;
-          $form['structured_data']['properties'][$property]['#weight'] = '-1';
+
+        if ($property_info['hidden'] !== TRUE) {
+          if ($schema_type == 'VideoObject') {
+            //dpm($property_info);
+          }
+          $form['structured_data']['properties'][$property] = array(
+            '#type' => 'select',
+            '#title' => t('!property data source', array('!property' => $property_info['name'])),
+            '#description' => t($property_info['description']),
+            '#options' => $source_options,
+            '#default_value' => $structured_data['properties'][$property],
+          );
+          if ($property_info['required']) {
+            $form['structured_data']['properties'][$property]['#required'] = TRUE;
+            $form['structured_data']['properties'][$property]['#weight'] = '-1';
+          }
         }
       }
     }
