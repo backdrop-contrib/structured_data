@@ -605,11 +605,15 @@ function structured_data_get_node_info($node) {
                   }
                   else {
                     $description_field = $structured_data['properties']['description'];
+                    $description_text = '';
+                    if (isset($node->{$description_field}[$lang])) {
+                      $description_text = filter_xss($node->{$description_field}[$lang][0]['value']);
+                    }
                     $data[$property] = array(
                       '@type' => 'VideoObject',
                       'embedUrl' => $youtube_embed_url,
                       'name' => filter_xss($node->title),
-                      'description' => filter_xss($node->{$description_field}[$lang][0]['value']),
+                      'description' => $description_text,
                       'thumbnailUrl' => $youtube_thumbnail_url,
                       'uploadDate' => format_date($node->created, 'custom', 'Y-m-d\TH:i:s'),
                       'publisher' => $publisher,
