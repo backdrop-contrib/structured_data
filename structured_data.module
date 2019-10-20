@@ -518,7 +518,7 @@ function structured_data_get_node_info($node) {
               $id = $node->{$field}[$lang][0]['target_id'];
               // @todo determine entity type here...
               $entity = entity_load('node', $id);
-              $elang = ($entity->language) ? $entity->language : LANGUAGE_NONE;
+              $elang = ($entity->langcode) ? $entity->langcode : LANGUAGE_NONE;
               $data[$property] = array(
                 'name' => filter_xss($entity->title),
                 // @todo find out how to actually map these fields.
