@@ -244,7 +244,7 @@ function structured_data_form_node_type_form_alter(&$form, &$form_state) {
     }
 
     // Map the field data to structured data.
-    if (is_array($schemas[$schema_type]['properties'])) {
+    if (isset($schemas[$schema_type]['properties']) && is_array($schemas[$schema_type]['properties'])) {
       foreach ($schemas[$schema_type]['properties'] as $property => $property_info) {
         $source_options = array();
         foreach ($property_info['type'] as $type) {
@@ -457,7 +457,7 @@ function structured_data_get_node_info($node) {
   // Only add the structured data if the node type is enabled.
   $config = config('structured_data.settings');
   $enabled_types = $config->get('node_types');
-  if (is_object($node) && in_array($node->type, $enabled_types)) {
+  if (is_object($node) && is_array($enabled_types) && in_array($node->type, $enabled_types)) {
     $lang = $node->langcode; // Nice shorthand.
 
     // Get the schema type.
