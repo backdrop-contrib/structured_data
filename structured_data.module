@@ -493,7 +493,8 @@ function structured_data_get_node_info($node) {
 
       foreach ($schema['properties'] as $property => $property_info) {
         $property = trim($property);
-        if ($field = $structured_data['properties'][$property]) {
+        $exists = isset($structured_data['properties'][$property]);
+        if ($exists && $field = $structured_data['properties'][$property]) {
 
           // Special handling for publisher.
           if ($property == 'publisher' && (substr($field, 0, 6) != 'field_')) {
