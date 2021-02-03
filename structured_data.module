@@ -552,7 +552,8 @@ function structured_data_get_node_info($node) {
           // Handle taxonomy field data.
           elseif (substr($field, 0, 9) == 'taxonomy_') {
             // Take only the first taxonomy term since only one value is allowed.
-            if (array_key_exists('target_id', $node->{$field}[$lang][0])) {
+            $not_empty = !empty($node->{$field});
+            if ($not_empty && isset($node->{$field}[$lang][0]['target_id'])) {
               $tid = $node->{$field}[$lang][0]['target_id'];
               $term_name = db_query("SELECT name FROM {taxonomy_term_data} WHERE tid = :tid",
                 array(':tid' => $tid))->fetchField();
@@ -680,7 +681,7 @@ function structured_data_get_node_info($node) {
 
           // Handle body field.
           elseif ($field == 'body') {
-            if (property_exists($node, $field) && !empty($node->{$field})
+            if (property_exists($node, $field) && isset($node->{$field}[$lang])
                 && array_key_exists('value', $node->{$field}[$lang][0])) {
               $data[$property] = filter_xss(strip_tags($node->{$field}[$lang][0]['value']));
             }
