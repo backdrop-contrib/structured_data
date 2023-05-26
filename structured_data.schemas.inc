@@ -393,7 +393,7 @@ function structured_data_get_schemas($type = NULL) {
   );
 
   // Allow schemas to be altered.
-  drupal_alter('structured_data_schemas', $schemas);
+  backrop_alter('structured_data_schemas', $schemas);
 
   if ($type == NULL) {
     return $schemas;
